@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "PDFier - Create your account",
   description: "Create your PDFier account to get started",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function AuthLayout({

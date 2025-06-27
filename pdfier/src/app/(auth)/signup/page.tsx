@@ -116,11 +116,11 @@ export default function Signup() {
       ) : (
         <>
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Create your account</h1>
+            <img src="/images/PDFier_logo.png" alt="PDFier Logo" className="h-50 w-70 mx-auto mt-[-40px] mb-[-40px]" />
             <p className="text-gray-500">Sign up to get started with PDFier</p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSignup}>
+          <form className="space-y-5" onSubmit={handleSignup}>
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
                 Username

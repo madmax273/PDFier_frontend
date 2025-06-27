@@ -176,7 +176,7 @@ export default function ForgotPassword() {
         return (
           <form className="space-y-6" onSubmit={handleRequestOtp}>
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">Forgot your password?</h1>
+              <img src="/images/PDFier_logo.png" alt="PDFier Logo" className="h-50 w-70 mx-auto mt-[-40px] mb-[-40px]" />
               <p className="text-gray-500">Pls Verify your email with OTP.</p>
             </div>
             <div>

@@ -73,7 +73,7 @@ export default function Login() {
 
       {/* Header section for the login form */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Sign in to your account</h1>
+        <img src="/images/PDFier_logo.png" alt="PDFier Logo" className="h-50 w-70 mx-auto mt-[-40px] mb-[-40px]" />
         <p className="text-gray-500">Welcome back to PDFier</p>
       </div>
 

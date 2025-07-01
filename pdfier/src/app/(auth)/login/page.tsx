@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // For client-side navigation
+import { useRouter } from "next/navigation"; 
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function Login() {
   const router = useRouter();
+  const login = useAuthStore((state) => state.login);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -29,13 +31,16 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: new URLSearchParams({ username, password }).toString(),
+        body: new URLSearchParams({ username, password }),
       });
 
       const data = await response.json(); // Parse the response JSON
       setIsLoading(false); // End loading state
 
       if (response.ok) {
+        // Update the auth store with user data and token
+        login(data.refresh_token);
+
         // Handle successful login
         setMessage({ type: 'success', text: data.message || 'Login successful! Redirecting...' });
         
@@ -44,7 +49,7 @@ export default function Login() {
         // via the browser's back button after successful login.
         setTimeout(() => {
           router.replace('/dashboard'); 
-        }, 1500); // Allow user to see the success message briefly
+        }, 500); // Allow user to see the success message briefly
 
       } else {
         // Handle login failure (e.g., invalid credentials, backend error)
@@ -107,7 +112,7 @@ export default function Login() {
               Password
             </label>
             {/* Link for password recovery */}
-            <Link href="/forgot-password" className="text-xs font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/forgot-password" className="text-xs font-medium text-[#471396] hover:text-blue-500">
               Forgot password?
             </Link>
           </div>
@@ -128,7 +133,7 @@ export default function Login() {
         {/* Submit button for login */}
         <button
           type="submit"
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#471396] hover:bg-[#471396]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isLoading}
         >
           {isLoading ? 'Signing in...' : 'Sign in'}
@@ -139,7 +144,7 @@ export default function Login() {
       <div className="mt-6 text-center text-sm">
         <p className="text-gray-600">
           Don't have an account?{' '}
-          <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+          <Link href="/signup" className="font-medium text-[#471396] hover:text-blue-500">
             Sign up
           </Link>
         </p>
@@ -147,4 +152,3 @@ export default function Login() {
     </div>
   );
 }
-

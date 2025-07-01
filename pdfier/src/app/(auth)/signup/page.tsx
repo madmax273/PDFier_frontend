@@ -29,6 +29,8 @@ export default function Signup() {
       });
       const data = await response.json();
 
+      setIsLoading(false);
+
       if (response.ok) {
         setMessage({ type: 'success', text: data.message || 'Signup successful! Please verify your email with the OTP.' });
         setUser_id(data.user_id); // Store the email for OTP step
@@ -181,7 +183,7 @@ export default function Signup() {
 
             <button
               type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#471396] hover:bg-[#471396]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]/50 transition"
               disabled={isLoading}
             >
               {isLoading ? 'Signing up...' : 'Sign up'}
@@ -220,7 +222,7 @@ export default function Signup() {
           <div className="mt-6 text-center text-sm">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/login" className="font-medium text-[#471396] hover:text-[#471396]/90">
                 Sign in
               </Link>
             </p>

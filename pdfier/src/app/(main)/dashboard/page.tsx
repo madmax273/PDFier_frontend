@@ -7,18 +7,20 @@ import { FilePlus, MessageSquare, Minimize2, ArrowRightLeft, FileText } from 'lu
 export default function DashboardPage() {
   return (
     <> {/* Fragment because this content is wrapped by the layout */}
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Welcome Back! 👋</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Welcome To PDFier! 👋</h1>
 
       {/* AI Assistant Call-to-action */}
-      <section className="bg-app-purple-50 p-6 rounded-xl shadow-sm mb-8 flex flex-col md:flex-row items-center justify-between">
-        <div className="text-app-purple-800 text-center md:text-left mb-4 md:mb-0">
+      <section className="hidden md:flex bg-white p-6 rounded-xl shadow-sm mb-8 flex justify-between">
+        <div className="text-gray-800">
           <h2 className="text-xl font-semibold mb-2">Unlock Insights with AI Chat!</h2>
-          <p className="text-app-purple-700">Ask anything about your PDFs and get instant, intelligent answers.</p>
+          <p className="text-gray-600">Ask anything about your PDFs and get instant, intelligent answers.</p>
         </div>
-        <Link href="/chat-ai" className="bg-app-purple-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-app-purple-600 transition-colors duration-200 flex items-center space-x-2">
-          <MessageSquare size={20} />
-          <span>Chat with a PDF now</span>
-        </Link>
+        <div className="flex justify-end">
+          <Link href="/chat-ai" className="bg-[#A294F9] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#A294F9]/90 transition-colors duration-200 flex items-center space-x-2">
+            <MessageSquare size={20} />
+            <span>Chat with a PDF now</span>
+          </Link>
+        </div>
       </section>
 
       {/* Quick Actions Section */}
@@ -27,28 +29,28 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Quick Action Card 1 */}
           <Link href="/upload" className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:border-app-purple-200 transition-all duration-200 flex flex-col items-center text-center">
-            <FilePlus size={36} className="text-app-purple-500 mb-3" />
+            <FilePlus size={36} className="text-[#471396] mb-3" />
             <h3 className="text-lg font-medium text-gray-800">Upload New PDF</h3>
             <p className="text-sm text-gray-500 mt-1">Get started with a fresh document.</p>
           </Link>
 
           {/* Quick Action Card 2 */}
           <Link href="/tools/merge" className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:border-app-purple-200 transition-all duration-200 flex flex-col items-center text-center">
-            <ArrowRightLeft size={36} className="text-app-purple-500 mb-3" />
+            <ArrowRightLeft size={36} className="text-[#471396] mb-3" />
             <h3 className="text-lg font-medium text-gray-800">Merge PDFs</h3>
             <p className="text-sm text-gray-500 mt-1">Combine multiple documents.</p>
           </Link>
 
           {/* Quick Action Card 3 */}
           <Link href="/tools/compress" className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:border-app-purple-200 transition-all duration-200 flex flex-col items-center text-center">
-            <Minimize2 size={36} className="text-app-purple-500 mb-3" />
+            <Minimize2 size={36} className="text-[#471396] mb-3" />
             <h3 className="text-lg font-medium text-gray-800">Compress PDF</h3>
             <p className="text-sm text-gray-500 mt-1">Reduce file size without quality loss.</p>
           </Link>
 
           {/* Quick Action Card 4 (Placeholder for another common action) */}
           <Link href="/documents" className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:border-app-purple-200 transition-all duration-200 flex flex-col items-center text-center">
-            <FileText size={36} className="text-app-purple-500 mb-3" />
+            <FileText size={36} className="text-[#471396] mb-3" />
             <h3 className="text-lg font-medium text-gray-800">My Documents</h3>
             <p className="text-sm text-gray-500 mt-1">Access your saved PDFs.</p>
           </Link>
@@ -63,7 +65,7 @@ export default function DashboardPage() {
           <ul className="space-y-4">
             <li className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
               <div className="flex items-center space-x-3">
-                <FileText size={20} className="text-gray-400" />
+                <FileText size={20} className="text-[#471396]" />
                 <span className="font-medium text-gray-700">Project_Report_v2.pdf</span>
                 <span className="text-sm text-gray-500 ml-2"> (Merged, 2 days ago)</span>
               </div>
@@ -71,7 +73,7 @@ export default function DashboardPage() {
             </li>
             <li className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
               <div className="flex items-center space-x-3">
-                <FileText size={20} className="text-gray-400" />
+                <FileText size={20} className="text-[#471396]" />
                 <span className="font-medium text-gray-700">Contract_Signed.pdf</span>
                 <span className="text-sm text-gray-500 ml-2"> (Signed, 5 days ago)</span>
               </div>
@@ -79,7 +81,7 @@ export default function DashboardPage() {
             </li>
             <li className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
               <div className="flex items-center space-x-3">
-                <FileText size={20} className="text-gray-400" />
+                <FileText size={20} className="text-[#471396]" />
                 <span className="font-medium text-gray-700">Invoice_Q2_2025.pdf</span>
                 <span className="text-sm text-gray-500 ml-2"> (Compressed, 1 week ago)</span>
               </div>

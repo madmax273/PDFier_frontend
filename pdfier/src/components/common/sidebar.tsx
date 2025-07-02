@@ -65,7 +65,7 @@ const bottomNavItems = [
         } bg-[#471396] dark:bg-[#471396] border-r border-gray-200 dark:border-gray-700 flex flex-col z-40 transform md:translate-x-0 transition-all duration-200 ease-in-out h-full`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-white-700">
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-white-700">
           <Link
             href="/dashboard"
             className="flex items-center space-x-2"

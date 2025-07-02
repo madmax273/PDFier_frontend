@@ -25,7 +25,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-[#471396] border-gray-200 dark:bg-[#471396] py-4 px-4 md:px-6">
+    <header className="bg-[#471396] border-gray-200 dark:bg-[#471396] py-2 px-4 md:px-6">
       <div className="flex flex-wrap items-center justify-between w-full h-full">
         <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">PDFier</span>

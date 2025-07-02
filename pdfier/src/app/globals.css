@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
   --background: #ffffff;
@@ -13,13 +14,13 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+:root {
     --background: #0a0a0a;
     --foreground: #ededed;
-  }
+}
 }
 
-body {
+  body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;

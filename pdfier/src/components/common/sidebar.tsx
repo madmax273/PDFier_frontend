@@ -89,9 +89,7 @@ const bottomNavItems = [
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/" && pathname.startsWith(item.href));
+            const isActive = pathname === item.href;
 
             return (
               <Link
@@ -101,7 +99,7 @@ const bottomNavItems = [
                   collapsed ? "justify-center" : ""
                 } px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
                   isActive
-                    ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                    ? "bg-blue-50 text-blue-700 dark:bg-gray-800/30 dark:text-blue-400"
                     : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                 }`}
               >

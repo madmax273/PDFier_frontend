@@ -16,7 +16,7 @@ export default function DashboardPage() {
           <p className="text-gray-600">Ask anything about your PDFs and get instant, intelligent answers.</p>
         </div>
         <div className="flex justify-end">
-          <Link href="/chat-ai" className="bg-[#A294F9] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#A294F9]/90 transition-colors duration-200 flex items-center space-x-2">
+          <Link href="/chat-ai" className="bg-[#A294F9] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#471396] transition-colors duration-200 flex items-center space-x-2">
             <MessageSquare size={20} />
             <span>Chat with a PDF now</span>
           </Link>

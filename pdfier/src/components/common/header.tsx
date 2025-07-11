@@ -1,7 +1,7 @@
 // components/Header.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { User } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
@@ -10,6 +10,7 @@ const Header: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const logout = useAuthStore((state) => state.logout);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const user = useAuthStore((state) => state.user);
 
   const handleDropdown = () => {
     setIsDropdownOpen(true);
@@ -24,8 +25,13 @@ const Header: React.FC = () => {
     console.log("Logging out..."); // Placeholder
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => setIsDropdownOpen(false), 500);
+    return () => clearTimeout(timer);
+  }, [isLoggedIn]);
+
   return (
-    <header className="bg-[#471396] border-gray-200 dark:bg-[#471396] py-2 px-4 md:px-6">
+    <header className="bg-[#471396] border-gray-200 dark:bg-[#471396] py-2 px-4 md:px-6 h-14">
       <div className="flex flex-wrap items-center justify-between w-full h-full">
         <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">PDFier</span>
@@ -47,7 +53,7 @@ const Header: React.FC = () => {
               <div className="fixed inset-0 h-full w-full" />
             )}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1" onMouseLeave={handleDropdownClose}>
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2" onMouseLeave={handleDropdownClose}>
                 <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
                   Dashboard
                 </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; 
 import { useAuthStore } from "@/store/AuthStore";
 
@@ -39,7 +39,7 @@ export default function Login() {
 
       if (response.ok) {
         // Update the auth store with user data and token
-        login(data.refresh_token);
+        login(data.user, data.refresh_token,data.access_token);
 
         // Handle successful login
         setMessage({ type: 'success', text: data.message || 'Login successful! Redirecting...' });

@@ -7,8 +7,10 @@ import {
     CheckCircle, FileText, XCircle, ArrowUp, ArrowDown, Layers,
     Box
   } from 'lucide-react';
-// import { useAuthStore } from '@/store/authStore'; // Import Zustand store
+import { useAuthStore } from '@/store/AuthStore'; // Import Zustand store
+import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import { Toast } from '@/components/ui/toast';
 
 
 // Define a type for the PDF file object
@@ -20,16 +22,18 @@ interface PdfFile {
 }
 
 export default function MergePDFPage() {
-//   const { user, isLoggedIn, isLoading: isAuthLoading, updateUserUsage } = useAuthStore();
-  const router = useRouter();
+  const { updateUserUsage} = useAuthStore();
+  const {user} = useAuthStore();
+  const {updateGuestUsage} = useAuthStore();
   const [selectedFiles, setSelectedFiles] = useState<PdfFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMerging, setIsMerging] = useState(false);
-  const [mergeMessage, setMergeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [mergedPdfUrl, setMergedPdfUrl] = useState<{ download_url: string} | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // Helper function to format file size for display
+  const router = useRouter();
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -68,17 +72,20 @@ export default function MergePDFPage() {
     event.preventDefault();
     setIsDragOver(false);
     addFiles(event.dataTransfer.files);
+    console.log("Drop");
   }, [addFiles]);
-
+   
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragOver(true);
+    console.log("Drag over");
   }, []);
 
   const handleDragLeave = useCallback(() => {
     setIsDragOver(false);
+    console.log("Drag leave");
   }, []);
-
+   
   // Remove a file from the list
   const removeFile = (idToRemove: string) => {
     setSelectedFiles(prev => prev.filter(file => file.id !== idToRemove));
@@ -103,68 +110,67 @@ export default function MergePDFPage() {
   // Handle the actual PDF merge operation
   const handleMergePdfs = async () => {
     if (selectedFiles.length < 2) {
-      setMergeMessage({ type: 'error', text: 'Please select at least two PDF files to merge.' });
+      setToast({ message: 'Please select at least two PDF files to merge.', type: 'error' });
       return;
     }
 
     setIsMerging(true);
-    setMergeMessage(null);
+    
 
     const formData = new FormData();
-    selectedFiles.forEach((pdfFile, index) => {
-      formData.append(`files`, pdfFile.file, pdfFile.name); // 'files' should match backend's expected field name
+    selectedFiles.forEach((pdfFile) => {
+      formData.append('files', pdfFile.file, pdfFile.name);
     });
 
     try {
-      // API call to your backend's merge endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/pdf/merge`, {
+      // Check if backend URL is set
+      if (!process.env.NEXT_PUBLIC_BACKEND_URL) {
+        throw new Error('Backend URL is not configured. Please check your environment variables.');
+      }
+
+      if(user && user.plan_type === 'guest'){
+        console.log('Current guest usage:', user.usage_metrics.pdf_processed_today);
+        if(user.usage_metrics.pdf_processed_today >= user.usage_metrics.pdf_processed_limit_daily){
+          setToast({ message: `You have exceeded the daily limit of ${user.usage_metrics.pdf_processed_limit_daily} PDF files to merge.`, type: 'error' });
+          return;
+        } else {
+          const newCount = user.usage_metrics.pdf_processed_today + 1;
+          console.log('Updating to:', newCount);
+          updateGuestUsage(newCount);
+          console.log('Guest usage after update:', user.usage_metrics.pdf_processed_today);
+        }
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tools/pdf/merge`, {
         method: 'POST',
         body: formData,
-        credentials: 'include', // Crucial for sending HTTP-only access_token cookie
+        headers: {
+          Authorization: `Bearer ${Cookies.get('accessToken')}`,
+        },
       });
 
       if (response.ok) {
-        // Assuming backend returns a PDF blob
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'merged_document.pdf'; // Suggested download filename
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url); // Clean up the object URL
-
-        // Assuming backend also returns updated usage metrics in JSON part
-        // You might need to parse JSON from headers or a separate response if blob is primary
-        // For simplicity, let's assume the backend sends JSON first, then the file.
-        // Or, if the backend sends JSON *with* the file, you'd need a more complex fetch.
-        // For now, let's assume the backend sends the file, and then you might have a separate
-        // endpoint to just update usage, or the merge endpoint returns a JSON response first.
-        // For this example, we'll simulate usage update.
+        const responseData = await response.json();
+        setMergedPdfUrl({download_url: responseData.download_url});
+        console.log("Merged PDF URL:", responseData.download_url); // or signedUrl
+        if(responseData.user_usage){
+          updateUserUsage(responseData.user_usage);
+        }
+        setToast({ message: 'PDFs merged successfully!', type: 'success' });
+          
+          // mergeMessage && (
+          //   <div className={`p-3 mb-4 rounded-lg text-sm inline-block
+          //     ${mergeMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          //     {mergeMessage.text}
+          //   </div>
+          // )
+          const mergeURL=encodeURIComponent(responseData.download_url);
+          router.push(`/tools/merge/download?url=${mergeURL}&fileSize`);
         
-        // --- SIMULATE USAGE UPDATE ---
-        // In a real scenario, your backend's merge endpoint would return the updated user_usage.
-        // For now, let's manually increment for demo purposes.
-        // const currentUsage = user?.usage_metrics;
-        // if (currentUsage) {
-        //     const updatedUsage = {
-        //         ...currentUsage,
-        //         pdf_processed_today: currentUsage.pdf_processed_today + 1
-        //     };
-        //     updateUserUsage(updatedUsage); // Update Zustand store
-        // }
-        // --- END SIMULATE USAGE UPDATE ---
-
-        setMergeMessage({ type: 'success', text: 'PDFs merged and downloaded successfully!' });
-        setSelectedFiles([]); // Clear files after successful merge
-      } else {
-        const errorData = await response.json(); // Parse error message from backend
-        setMergeMessage({ type: 'error', text: errorData.detail || 'Failed to merge PDFs. Please try again.' });
-      }
+      } 
     } catch (error) {
       console.error("Error merging PDFs:", error);
-      setMergeMessage({ type: 'error', text: 'Network error or unable to connect to the server.' });
+      setToast({ message: 'Network error or unable to connect to the server.', type: 'error' });
     } finally {
       setIsMerging(false);
     }
@@ -172,6 +178,14 @@ export default function MergePDFPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 lg:p-8">
+      {/* Toast Notification */}
+    {toast && (
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => setToast(null)}
+      />
+    )}
       {/* Breadcrumbs */}
       <nav className="text-sm font-medium text-gray-500 mb-6 flex items-center space-x-2">
         <Link href="/" className="text-gray-400 hover:text-gray-600">
@@ -189,8 +203,8 @@ export default function MergePDFPage() {
 
       {/* Main Upload Area */}
       <section
-        className={`relative bg-white border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300
-          ${isDragOver ? 'border-app-purple-500 bg-app-purple-50' : 'border-gray-300 hover:border-gray-400'}`}
+        className={`relative bg-white border-3 border-dashed rounded-xl p-8 text-center transition-all duration-300
+          ${isDragOver ? 'border-[#7A00E6]' : 'border-[#A294F9]'}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -220,9 +234,9 @@ export default function MergePDFPage() {
                   <button
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                     role="menuitem"
-                    onClick={() => {
-                        fileInputRef.current?.click();
-                        setShowDropdown(false); // Close dropdown immediately
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent event bubbling
+                      fileInputRef.current?.click();
                     }}
                   >
                     <HardDrive size={18} className="mr-3 text-gray-500" /> From device
@@ -232,7 +246,11 @@ export default function MergePDFPage() {
                       className="hidden"
                       multiple
                       accept="application/pdf"
-                      onChange={handleFileSelect}
+                      onChange={(e) => {
+                        handleFileSelect(e);
+                        setShowDropdown(false);
+                      }}
+                      onClick={(e) => e.stopPropagation()} // Prevent event bubbling
                     />
                   </button>
                   {/* Disabled Pro/Cloud options */}
@@ -316,16 +334,16 @@ export default function MergePDFPage() {
             ))}
           </ul>
           <div className="mt-6 text-center">
-            {mergeMessage && (
+            {toast && (
               <div className={`p-3 mb-4 rounded-lg text-sm inline-block
-                ${mergeMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {mergeMessage.text}
+                ${toast.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {toast.message}
               </div>
             )}
             <button
               onClick={handleMergePdfs}
               disabled={selectedFiles.length < 2 || isMerging}
-              className="inline-flex items-center justify-center rounded-lg shadow-md px-8 py-3 bg-app-purple-600 text-base font-medium text-white hover:bg-app-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-app-purple-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center rounded-lg shadow-md px-8 py-3 bg-[#471396] text-base font-medium text-white hover:bg-[#471396]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]/50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isMerging ? (
                 <>
@@ -345,7 +363,7 @@ export default function MergePDFPage() {
           </div>
         </section>
       )}
-
+      
 
       {/* Features List */}
       <section className="mt-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -384,4 +402,3 @@ export default function MergePDFPage() {
     </div>
   );
 }
-

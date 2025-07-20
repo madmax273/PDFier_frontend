@@ -23,14 +23,13 @@ import {
 // In sidebar.tsx
 interface SidebarProps {
   isOpen: boolean;
-  onClose: () => void;
   collapsed: boolean;
   onCollapse: () => void;  // Add this line
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, collapsed, onCollapse }) => {
-  const pathname = usePathname();
 
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, collapsed, onCollapse }) => {
+  const pathname = usePathname();
 
 const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },

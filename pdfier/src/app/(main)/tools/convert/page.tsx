@@ -189,7 +189,7 @@ export default function ConvertPDFPage() {
                       </span>
                     </div>
                     <button
-                      onClick={() => removeFile(index)}
+                      onClick={() => removeFile(file.id)}
                       className="text-gray-400 hover:text-gray-500"
                     >
                       <X className="h-5 w-5" />

@@ -30,10 +30,8 @@ export interface UsageMetrics {
     plan_type: 'guest';
     // Guest users will have a simplified usage_metrics for frontend display
     usage_metrics: {
+      pdf_processed_today: number;
       pdf_processed_limit_daily: number;
-      rag_queries_limit_monthly: number;
-      rag_indexed_documents_limit: number;
-      word_conversions_limit_daily: number;
     };
   }
   

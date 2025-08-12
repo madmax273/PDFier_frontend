@@ -11,13 +11,16 @@ type AuthState = {
   accessToken: string | null;
   user: AuthUser;
   isInitializing: boolean;
+  isSidebarCollapsed: boolean;
 };
+
 
 interface AuthActions {
   initializeAuth: () => Promise<void>; // To check session on app load
   login: (userData: User, refreshToken: string,accessToken:string) => void; // Called by login page
   logout: () => Promise<void>; // Handles logging out
   updateUserUsage: (newUsage: UsageMetrics) => void; // To update usage after an operation
+  updateGuestUsage: (processedToday: number) => void; // To update usage after an operation
 }
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -30,10 +33,8 @@ const defaultGuestUser: GuestUser = {
   verified: false,
   plan_type: 'guest',
   usage_metrics: {
-    pdf_processed_limit_daily: 2, // Example guest limits
-    rag_queries_limit_monthly: 3,
-    rag_indexed_documents_limit: 1,
-    word_conversions_limit_daily: 0, 
+    pdf_processed_today: 0,
+    pdf_processed_limit_daily: 10, // Example guest limits
   },
 };
 
@@ -46,6 +47,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       accessToken: null,
       user: null,
       isInitializing: false,
+      isSidebarCollapsed: true,
       initializeAuth: async () => {
         set({ isInitializing: true });
         try {
@@ -67,28 +69,33 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             const refreshToken = Cookies.get('refreshToken');
             console.log("Refresh token from cookies {"+refreshToken+"}");
             if (refreshToken) {
+
               const refreshResponse = await fetch(`${BACKEND_URL}/api/v1/auth/refresh`, {
-                method: 'GET',
-                credentials: 'include',
+                method: 'POST',
                 headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Content-Type': 'application/json',
                 },
-                body: new URLSearchParams({ refresh_token: refreshToken }),
+                body: JSON.stringify({ refresh_token:refreshToken }),
+                credentials: 'include',
               });
 
               if (refreshResponse.ok) {
                 console.log("Refresh token is valid. fetching new access token.");
-                const { access_token: newAccessToken } = await refreshResponse.json();
-                Cookies.set('accessToken', newAccessToken, {
-                  expires: 30,
+                const data = await refreshResponse.json();
+                Cookies.set('accessToken', data.access_token, {
+                  expires: 420,
                   secure: process.env.NODE_ENV === 'production',
                   sameSite: 'Lax',
                 });
-                router.replace(router.asPath); // Redirect to current page after setting new access token
+                if (typeof window !== 'undefined') {
+                  window.location.reload();
+                }
               } else {
                 console.warn("Refresh token is invalid or has expired. Setting user as guest.");
                 set({ user: defaultGuestUser, isLoggedIn: false });
                 get().logout();
+                router.push('/login');
+
 
               }
             } 
@@ -118,7 +125,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           sameSite: 'Lax',
         });
         Cookies.set('accessToken', accessToken, {
-          expires: 30,
+          expires: 420,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'Lax',
         });
@@ -127,10 +134,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         
         
         set({ user: userData, isLoggedIn: true, refreshToken,accessToken });
-        console.log("Setting user state");
-        console.log(get().isLoggedIn);
-        console.log(get().refreshToken);
-        console.log(get().user);
 
       },
 
@@ -154,6 +157,28 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           return state;
         });
       },
+    // In AuthStore.ts
+    updateGuestUsage: (processedToday: number) => {
+      console.log('Updating guest usage:', processedToday);
+      set((state) => {
+        if (state.user && state.user.plan_type === 'guest') {
+          const newState = {
+            ...state,
+            user: {
+              ...state.user,
+              usage_metrics: {
+                ...state.user.usage_metrics,
+                pdf_processed_today: processedToday
+              }
+            }
+          };
+          console.log('New state:', newState);
+          return newState;
+        }
+        console.log('Not a guest user');
+        return state;
+      });
+    }
     }),
     {
       name: 'auth-storage',

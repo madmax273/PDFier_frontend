@@ -23,14 +23,13 @@ import {
 // In sidebar.tsx
 interface SidebarProps {
   isOpen: boolean;
-  onClose: () => void;
   collapsed: boolean;
   onCollapse: () => void;  // Add this line
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, collapsed, onCollapse }) => {
-  const pathname = usePathname();
 
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, collapsed, onCollapse }) => {
+  const pathname = usePathname();
 
 const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -40,7 +39,6 @@ const navItems = [
     { name: "Convert PDF", href: "/tools/convert", icon: FilePlus },
     { name: "All PDF Tools", href: "/tools", icon: FileText },
     { name: "My Documents", href: "/documents", icon: FileText },
-    { name: "OCR & AI", href: "/tools/ocr-ai", icon: Sigma },
     { name: "Chat with PDF (AI)", href: "/chat-ai", icon: MessageSquare },
 ];
 

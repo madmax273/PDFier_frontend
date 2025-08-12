@@ -39,7 +39,6 @@ const navItems = [
     { name: "Convert PDF", href: "/tools/convert", icon: FilePlus },
     { name: "All PDF Tools", href: "/tools", icon: FileText },
     { name: "My Documents", href: "/documents", icon: FileText },
-    { name: "OCR & AI", href: "/tools/ocr-ai", icon: Sigma },
     { name: "Chat with PDF (AI)", href: "/chat-ai", icon: MessageSquare },
 ];
 

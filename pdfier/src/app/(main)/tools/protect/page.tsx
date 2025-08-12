@@ -20,7 +20,7 @@ export default function ProtectPDFPage() {
     printing: 'high', // 'none', 'low', 'high'
     modifying: false,
     copying: false,
-    formFilling: true,
+    formFilling: false  ,
   });
   const { files, addFiles, removeFile, clearFiles } = useFileStore();
   const router = useRouter();
@@ -99,12 +99,17 @@ export default function ProtectPDFPage() {
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log('PDF protected successfully:', responseData);
-        setToast({ message: 'PDF protected successfully', type: 'success' });
-        router.push('/tools/protect/result?url=' + responseData.download_url);
+        // console.log("Compressed PDF URL:", downloadUrl); // This console.log will show the *previous* state of downloadUrl, it's asynchronous. If you want to see the new value, log responseData.download_urls
         if(responseData.user_usage){
           updateUserUsage(responseData.user_usage);
         }
+        setToast({ message: 'PDF protected successfully!', type: 'success' });
+        const params = new URLSearchParams();
+        responseData.download_url.forEach((urlObj: string) => {
+          params.append('url', urlObj);
+        });
+        console.log("Query string to push:", params.toString());
+        router.push(`/tools/protect/download?${params.toString()}`);
         clearFiles();
       }
       else {
@@ -294,7 +299,7 @@ export default function ProtectPDFPage() {
                       </span>
                     </div>
                     <button
-                      onClick={() => clearFiles()}
+                      onClick={() => removeFile(file.id)}
                       className="text-gray-400 hover:text-gray-500"
                     >
                       <X className="h-5 w-5" />
@@ -317,9 +322,9 @@ export default function ProtectPDFPage() {
             )}
             <button
               onClick={handleProtect}
-              disabled={files.length === 0 || isProtecting || !password || password !== confirmPassword}
+              disabled={files.length === 0 || isProtecting || !password}
               className={`ml-auto inline-flex items-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
-                files.length === 0 || !password || password !== confirmPassword
+                files.length === 0 || !password
                   ? 'bg-gray-300 cursor-not-allowed'
                   : 'bg-[#471396] hover:bg-[#3a0f75]'
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]`}

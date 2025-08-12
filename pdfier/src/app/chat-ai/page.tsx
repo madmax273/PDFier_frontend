@@ -1,128 +1,192 @@
 "use client";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Cookies from "js-cookie";
+import { Toast } from "@/components/ui/toast";
 
-import { useState, useRef, useEffect } from 'react';
-import { Send, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-
-type Message = {
+type Collection = {
   id: string;
-  content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
+  name: string;
+  description?: string | null;
 };
 
-export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: 'Hello! Select a PDF from the sidebar to get started.',
-      sender: 'ai',
-      timestamp: new Date(),
-    },
-  ]);
-  const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+export default function ChatAiCollectionsPage() {
+  const router = useRouter();
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      sender: 'user',
-      timestamp: new Date(),
+    let cancelled = false;
+    async function loadCollections() {
+      try {
+        setLoading(true);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/collections/`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${Cookies.get("accessToken")}` },
+        });
+        if (!response.ok) throw new Error(`Failed to fetch collections: ${response.status}`);
+        const raw = await response.json();
+        const list: Collection[] =
+          Array.isArray(raw) ? raw : Array.isArray(raw?.results) ? raw.results : Array.isArray(raw?.data) ? raw.data : [];
+        if (!cancelled) setCollections(list);
+      } catch (e: any) {
+        setToast({ message: e?.message ?? "Failed to load collections", type: "error" });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    loadCollections();
+    return () => {
+      cancelled = true;
     };
+  }, []);
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `I received: "${inputValue}"`,
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiResponse]);
-    }, 1000);
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/collections/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${Cookies.get("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, description }),
+      });
+      if (!res.ok) throw new Error(`Failed to create collection: ${res.status}`);
+      const created: Collection = await res.json();
+      router.push(`/chat-ai/${created.id}`);
+    } catch (e: any) {
+      setToast({ message: e?.message ?? "Failed to create collection", type: "error" });
+    }
   };
 
+  const onSelectCollection = (c: Collection) => {
+    router.push(`/chat-ai/${c.id}`);
+  };
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-[60vh] text-lg text-gray-500">Loading collections...</div>;
+  }
+
+  const isEmpty = collections.length === 0;
+
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden">
-      {/* Chat Header */}
-      <div className="border-b border-gray-200 bg-white p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Chat with your documents
-          </h2>
-          <Button variant="outline" size="sm" className="text-[#471396] border-[#471396] hover:bg-[#f5f0fa]">
-            <Plus className="h-4 w-4 mr-2" />
-            New Chat
-          </Button>
-        </div>
+    
+    <div className="px-4 sm:px-6 space-y-6">
+      <div className="h-4"></div> {/* Added space */}
+      {/* Header Row */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-[#471396]">My Collections</h2>
+        <Button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-[#471396] hover:bg-[#5e1bbf] text-white px-5 py-2 rounded-lg shadow-md transition"
+        >
+          Create Collection
+        </Button>
       </div>
+      
+      
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-gray-50">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-3/4 rounded-lg px-4 py-2 ${
-                message.sender === 'user'
-                  ? 'bg-[#471396] text-white rounded-br-none'
-                  : 'bg-white border border-gray-200 rounded-bl-none'
-              }`}
+      {/* Collection Grid */}
+      {!isEmpty && (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {collections.map((c) => (
+            <button
+              key={c.id}
+              className="text-left rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all hover:scale-[1.02] bg-white"
+              onClick={() => onSelectCollection(c)}
             >
-              <p className="text-sm">{message.content}</p>
-              <p className="text-xs mt-1 opacity-70">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+              <div className="font-semibold text-lg text-[#471396]">{c.name}</div>
+              {c.description ? (
+                <div className="text-sm text-gray-700 mt-2">{c.description}</div>
+              ) : (
+                <div className="text-sm italic text-gray-400 mt-2">No description</div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white p-4">
-        <form onSubmit={handleSendMessage} className="flex space-x-2">
-          <div className="relative flex-1">
-            <Input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type your message..."
-              className="w-full pr-10 focus-visible:ring-2 focus-visible:ring-[#471396]"
-            />
+      {/* Empty State */}
+      {isEmpty && (
+        <div className="rounded-xl border border-dashed p-8 flex flex-col items-center gap-4 bg-white shadow-sm">
+          <div className="text-center">
+            <div className="font-semibold text-lg text-gray-800">No collections found</div>
+            <div className="text-sm text-gray-500 mt-1">Please create a collection to get started</div>
           </div>
-          <Button
-            type="submit"
-            disabled={!inputValue.trim()}
-            className="bg-[#471396] hover:bg-[#3a0f7a] text-white"
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Send
-          </Button>
-        </form>
-        <p className="mt-2 text-xs text-center text-gray-500">
-          PDFier may produce inaccurate information. Please verify important details.
-        </p>
-      </div>
+          <div className="mt-6">
+            <Button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-[#471396] hover:bg-[#5e1bbf] text-white px-5 py-2 rounded-lg shadow-md transition"
+            >
+              Get Started
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Collection Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl animate-fadeIn">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="font-semibold text-lg text-[#471396]">Create Collection</h3>
+              <button
+                className="text-sm text-gray-500 hover:text-gray-700"
+                onClick={() => setShowCreateForm(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleCreate} className="mt-5 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Name</label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter collection name"
+                  className="focus:ring-[#471396] focus:border-[#471396]"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Description</label>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Optional description"
+                  className="focus:ring-[#471396] focus:border-[#471396]"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setShowCreateForm(false)}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#471396] hover:bg-[#5e1bbf] text-white shadow-md"
+                >
+                  Create
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
     </div>
   );
 }

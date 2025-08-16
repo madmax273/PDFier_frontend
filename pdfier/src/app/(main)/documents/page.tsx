@@ -105,7 +105,7 @@ export default function DocumentsPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-[#2d0f57]">Your Documents</h1>
         <Button asChild className="bg-[#471396] hover:bg-[#3a0f77]">
-          <Link href="/tools">Upload New</Link>
+          <Link href="/tools">All PDF Tools</Link>
         </Button>
       </div>
 

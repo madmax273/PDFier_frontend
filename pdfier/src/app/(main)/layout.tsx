@@ -26,13 +26,13 @@ export default function AppLayout({
     isInitializing ? null : (
       <div className="min-h-screen flex bg-gray-100 relative">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-40">
+      {/* <div className="fixed inset-y-0 left-0 z-40"> */}
         <Sidebar
           isOpen={isSidebarOpen}
           collapsed={isSidebarCollapsed}
           onCollapse={toggleSidebarCollapse}
         />
-      </div>
+      {/* </div> */}
 
       {/* Main Content Area */}
       <div 
@@ -56,7 +56,7 @@ export default function AppLayout({
         </main>
 
         {/* Footer */}
-        <div className="relative z-20">
+        <div className="sticky bottom-0 z-30 bg-white dark:bg-gray-900 shadow-sm">
           <Footer />
         </div>
       </div>

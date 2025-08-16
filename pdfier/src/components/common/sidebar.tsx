@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sigma,
+  
 } from "lucide-react";
 
 // In sidebar.tsx
@@ -37,7 +38,7 @@ const navItems = [
     { name: "Compress PDF", href: "/tools/compress", icon: Minimize2 },
     { name: "Protect PDF", href: "/tools/protect", icon: Lock },
     { name: "Convert PDF", href: "/tools/convert", icon: FilePlus },
-    { name: "All PDF Tools", href: "/tools", icon: FileText },
+    { name: "All PDF Tools", href: "/tools", icon: Sparkles },
     { name: "My Documents", href: "/documents", icon: FileText },
     { name: "Chat with PDF (AI)", href: "/chat-ai", icon: MessageSquare },
 ];

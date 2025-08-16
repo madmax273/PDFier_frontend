@@ -27,7 +27,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-[#471396] border-gray-200 dark:bg-[#471396] py-2 px-4 md:px-6 h-14">
+    <header className="bg-[#471396] border-gray-200 dark:bg-[#471396] py-2 px-4 md:px-6 h-14 relative z-30">
       <div className="flex flex-wrap items-center justify-between w-full h-full">
         <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">PDFier</span>
@@ -35,20 +35,15 @@ const Header: React.FC = () => {
         <div className="flex items-center space-x-4">
           {isLoggedIn ? (
             <div className="relative">
-              <User 
-                size={20} 
-                className='rounded-full hover:shadow-md hover:shadow-gray-500/50 cursor-pointer text-white'
-                onMouseOver={handleDropdown}
-              />
-              {isDropdownOpen && (
-                <div 
-                  className="fixed inset-0 h-full w-full z-10" 
-                  onClick={handleDropdownClose}
+              <div className="relative">
+                <User 
+                  size={20} 
+                  className='rounded-full hover:shadow-md hover:shadow-gray-500/50 cursor-pointer text-white'
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 />
-              )}
-              {isDropdownOpen && (
+                {isDropdownOpen && (
                 <div 
-                  className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-20" 
+                  className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-50" 
                   onMouseLeave={handleDropdownClose}
                 >
                   <Link 
@@ -87,6 +82,7 @@ const Header: React.FC = () => {
                   </button>
                 </div>
               )}
+              </div>
             </div>
           ) : (
             <>

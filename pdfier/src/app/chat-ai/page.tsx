@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Cookies from "js-cookie";
 import { Toast } from "@/components/ui/toast";
+import { useAuthStore } from "@/store/AuthStore";
 
 type Collection = {
   id: string;
@@ -14,12 +15,25 @@ type Collection = {
 
 export default function ChatAiCollectionsPage() {
   const router = useRouter();
+  const { user, isLoggedIn } = useAuthStore();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  // Check if user is guest and show login dialog
+  useEffect(() => {
+    if (user?.plan_type === 'guest') {
+      setShowLoginDialog(true);
+    }
+  }, [user]);
+
+  const handleLogin = () => {
+    router.push('/login');
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +88,39 @@ export default function ChatAiCollectionsPage() {
     return <div className="flex justify-center items-center h-[60vh] text-lg text-gray-500">Loading collections...</div>;
   }
 
+  // Show login modal for guest users
+  if (user?.plan_type === 'guest' && showLoginDialog) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Login Required</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Please log in to access the Chat AI feature. This feature is only available for registered users.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-3">
+            <Button 
+              type="button" 
+              onClick={() => router.push('/dashboard')}
+              variant="outline"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-700"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={handleLogin}
+              className="bg-[#471396] hover:bg-[#5e1bbf] text-white"
+            >
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isEmpty = collections.length === 0;
 
   return (
@@ -83,6 +130,10 @@ export default function ChatAiCollectionsPage() {
       {/* Header Row */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-[#471396]">My Collections</h2>
+        <p className="mt-2 text-sm text-gray-500">Please select a conversation to start a conversation.</p>
+        
+       
+
         <Button
           onClick={() => setShowCreateForm(true)}
           className="bg-[#471396] hover:bg-[#5e1bbf] text-white px-5 py-2 rounded-lg shadow-md transition"
@@ -151,7 +202,7 @@ export default function ChatAiCollectionsPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter collection name"
-                  className="focus:ring-[#471396] focus:border-[#471396]"
+                  className="focus:ring-white focus:border-black bg-white border-2 border-black text-black"
                   required
                 />
               </div>
@@ -161,7 +212,7 @@ export default function ChatAiCollectionsPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Optional description"
-                  className="focus:ring-[#471396] focus:border-[#471396]"
+                  className="focus:ring-white focus:border-black bg-white border-2 border-black text-black"
                 />
               </div>
               <div className="flex items-center justify-end gap-3 pt-2">

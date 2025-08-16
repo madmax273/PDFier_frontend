@@ -67,28 +67,10 @@ const tools = [
     icon: "🔒",
   },
   {
-    title: "Unlock PDF",
-    description: "Remove password protection from PDFs",
-    href: "/tools/unlock",
-    icon: "🔓",
-  },
-  {
     title: "Sign PDF",
     description: "Add digital signatures to your documents",
     href: "/tools/sign",
     icon: "✍️",
-  },
-  {
-    title: "Edit PDF",
-    description: "Modify text and images in your PDF",
-    href: "/tools/edit",
-    icon: "✏️",
-  },
-  {
-    title: "Rotate PDF",
-    description: "Rotate pages in your PDF document",
-    href: "/tools/rotate",
-    icon: "🔄",
   },
   {
     title: "Organize PDF",
@@ -97,46 +79,16 @@ const tools = [
     icon: "📑",
   },
   {
-    title: "OCR PDF",
-    description: "Convert scanned documents into searchable text",
-    href: "/tools/ocr",
-    icon: "🔍",
-  },
-  {
     title: "PDF to TXT",
     description: "Extract text from PDF files",
     href: "/tools/txt",
     icon: "📝",
   },
   {
-    title: "Repair PDF",
-    description: "Fix corrupted PDF files",
-    href: "/tools/repair",
-    icon: "🔧",
-  },
-  {
-    title: "PDF to HTML",
-    description: "Convert PDF to web pages",
-    href: "/tools/html",
-    icon: "🌐",
-  },
-  {
     title: "Add Watermark",
     description: "Add text or image watermarks to PDFs",
     href: "/tools/watermark",
     icon: "💧",
-  },
-  {
-    title: "Number Pages",
-    description: "Add page numbers to your PDF",
-    href: "/tools/number",
-    icon: "#️⃣",
-  },
-  {
-    title: "Compare PDFs",
-    description: "Find differences between two PDFs",
-    href: "/tools/compare",
-    icon: "🔍",
   },
   {
     title: "Redact PDF",
@@ -149,12 +101,6 @@ const tools = [
     description: "Fill out and sign PDF forms",
     href: "/tools/fill-sign",
     icon: "📝",
-  },
-  {
-    title: "PDF to EPUB",
-    description: "Convert PDF to EPUB e-book format",
-    href: "/tools/epub",
-    icon: "📚",
   },
 ];
 

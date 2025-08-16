@@ -487,7 +487,7 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Type your message..."
-                  className="flex-1 border rounded-lg px-3 py-2 mr-2 focus:outline-none focus:ring focus:ring-purple-300"
+                  className="flex-1 border rounded-lg px-3 py-2 mr-2 focus:outline-none focus:ring focus:ring-purple-500 text-black"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -549,7 +549,7 @@ export default function Home() {
                   type="text"
                   value={conversationTitle}
                   onChange={(e) => setConversationTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-black"
                   placeholder="Enter conversation title"
                   required
                   disabled={isCreating}

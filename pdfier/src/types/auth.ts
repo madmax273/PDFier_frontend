@@ -14,6 +14,7 @@ export interface UsageMetrics {
   
   export interface User {
     name: string;
+    email?: string;
     verified: boolean;
     ip_address?: string; // Optional if not always present
     plan_type: 'basic' | 'premium'; // Explicitly basic or premium for logged-in users

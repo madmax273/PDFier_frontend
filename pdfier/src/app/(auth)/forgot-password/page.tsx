@@ -3,30 +3,23 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Lock, Loader2, ArrowRight, KeyRound, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import OtpInput from "@/components/auth/otp"; 
 
-// Importing the provided OtpInput component
-import OtpInput from "@/components/auth/otp"; // Adjust this path if your OtpInput is elsewhere
-
-// Define the steps for the password reset flow
 type ResetPasswordStep = 'email_input' | 'otp_entry' | 'new_password_entry' | 'reset_success';
 
 export default function ForgotPassword() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [user_id, setUser_id] = useState(''); // To store user_id received after requesting OTP
-  const [otp, setOtp] = useState(''); // OTP will be handled by OtpInput internally, but we might need it for validation
+  const [user_id, setUser_id] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [step, setStep] = useState<ResetPasswordStep>('email_input'); // Current step in the flow
+  const [step, setStep] = useState<ResetPasswordStep>('email_input');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  /**
-   * Handles the request to send an OTP to the user's email for password reset.
-   * This is the first step of the forgot password flow.
-   * Backend should return a user_id or reset_token upon success.
-   * @param e The form submission event.
-   */
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -43,10 +36,9 @@ export default function ForgotPassword() {
       setIsLoading(false);
 
       if (response.ok) {
-        // Assume backend returns { message: "...", user_id: "..." }
         setMessage({ type: 'success', text: data.message || 'OTP sent to your email. Please check your inbox.' });
-        setUser_id(data.user_id); // Store the user_id for the next step
-        setStep('otp_entry'); // Move to the OTP entry step
+        setUser_id(data.user_id); 
+        setStep('otp_entry');
       } else {
         const errorMessage = data.detail || 'Failed to send OTP. Please try again.';
         setMessage({ type: 'error', text: errorMessage });
@@ -58,14 +50,6 @@ export default function ForgotPassword() {
     }
   };
 
-  /**
-   * Handles the OTP verification only (first part of password reset).
-   * This is called by the OtpInput component.
-   * Backend should verify OTP and return a temporary token for password reset.
-   * @param enteredOtp The OTP entered by the user.
-   * @param currentUserId The user_id associated with the OTP request.
-   */
- 
   const handleVerifyOtp = async (otp: string, user_id: string) => {
     setMessage(null);
     setIsLoading(true);
@@ -82,11 +66,8 @@ export default function ForgotPassword() {
       setIsLoading(false);
 
       if (response.ok) {
-        setMessage({ type: 'success', text: data.message || 'Account verified successfully! Redirecting to login...' });
-        // setTimeout(() => {
-        //   router.push('/login'); // Redirect to login page after successful verification
-        // }, 2000); // Give user a moment to read success message
-        setStep('new_password_entry'); // Move to the new password entry step
+        setMessage({ type: 'success', text: data.message || 'Account verified successfully!' });
+        setStep('new_password_entry');
       } else {
         setMessage({ type: 'error', text: data.detail || 'OTP verification failed. Please try again.' });
       }
@@ -113,7 +94,7 @@ export default function ForgotPassword() {
       if (response.ok) {
         setMessage({ type: 'success', text: data.message || 'OTP resent successfully!' });
       } else {
-        setMessage({ type: 'error', text: Array.isArray(data.detail) ? data.detail.map((err: any) => err.msg).join('. ') : (data.detail?.message || data.detail || 'Failed to resend OTP.') });
+        setMessage({ type: 'error', text: Array.isArray(data.detail) ? data.detail.map((err: { msg: string }) => err.msg).join('. ') : (data.detail?.message || data.detail || 'Failed to resend OTP.') });
       }
     } catch (error) {
       setIsLoading(false);
@@ -122,10 +103,6 @@ export default function ForgotPassword() {
     }
   };
 
-  /**
-   * Handles the setting of a new password after OTP has been successfully verified.
-   * @param e The form submission event.
-   */
   const handleSetNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -138,24 +115,21 @@ export default function ForgotPassword() {
     }
 
     try {
-      // This endpoint needs to consume the OTP/verification token received in the previous step
-      // For simplicity, we are passing email and the already verified OTP to the reset endpoint
-      // A more robust solution might use a temporary 'reset_token' from verify-reset-otp endpoint
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/forgot/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user_id, new_password: newPassword }), // Pass email, the verified OTP, and new password
+        body: JSON.stringify({ user_id: user_id, new_password: newPassword }), 
       });
 
       const data = await response.json();
       setIsLoading(false);
 
       if (response.ok) {
-        setMessage({ type: 'success', text: data.message || 'Password reset successful! Redirecting to login.' });
+        setMessage({ type: 'success', text: data.message || 'Password reset successful!' });
+        setStep('reset_success');
         setTimeout(() => {
-          router.push('/login'); // Redirect to login page after successful password reset
-        }, 2000); // Give user a moment to read success message
-        
+          router.push('/login'); 
+        }, 2000); 
       } else {
         const errorMessage = data.detail || 'Password reset failed. Please try again.';
         setMessage({ type: 'error', text: errorMessage });
@@ -167,146 +141,210 @@ export default function ForgotPassword() {
     }
   };
 
-  // Function to resend OTP, called from OtpInput
+  const formVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    show: { opacity: 1, scale: 1, transition: { type: "spring", bounce: 0, duration: 0.4 } },
+    exit: { opacity: 0, scale: 1.05, transition: { duration: 0.2 } }
+  };
 
+  const staggerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { staggerChildren: 0.1 } }
+  };
 
   const renderContent = () => {
     switch (step) {
       case 'email_input':
         return (
-          <form className="space-y-6" onSubmit={handleRequestOtp}>
-            <div className="text-center mb-8">
-              <img src="/images/PDFier_logo.png" alt="PDFier Logo" className="h-50 w-70 mx-auto mt-[-40px] mb-[-40px]" />
-              <p className="text-gray-500">Pls Verify your email with OTP.</p>
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="w-full px-4 py-2 border border-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#471396] hover:bg-[#471396]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Sending OTP...' : 'Send OTP'}
-            </button>
-          </form>
+          <motion.div key="email_input" variants={formVariants} initial="hidden" animate="show" exit="exit" className="w-full">
+            <motion.div variants={staggerVariants} initial="hidden" animate="show" className="text-center mb-8">
+              <div className="flex items-center justify-center space-x-3 mb-6">
+                <div className="relative flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 text-primary shadow-inner border border-primary/20">
+                  <KeyRound size={24} className="absolute text-primary" />
+                </div>
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">Reset Password</h1>
+              <p className="text-muted-foreground mt-2">Enter your email to receive a verification code.</p>
+            </motion.div>
+
+            <form className="space-y-6" onSubmit={handleRequestOtp}>
+              <motion.div variants={staggerVariants} initial="hidden" animate="show" className="space-y-2">
+                <label htmlFor="email" className="text-sm font-semibold text-foreground">
+                  Email address
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border/50 text-foreground rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
+              </motion.div>
+              <motion.div variants={staggerVariants} initial="hidden" animate="show">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-6 rounded-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-primary/40 hover:shadow-xl hover:-translate-y-1"
+                >
+                  {isLoading ? (
+                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Sending...</>
+                  ) : (
+                    <>Send OTP <ArrowRight className="ml-2 h-5 w-5" /></>
+                  )}
+                </Button>
+              </motion.div>
+            </form>
+          </motion.div>
         );
 
       case 'otp_entry':
-        // Render the reusable OtpInput component here
         return (
-          <OtpInput 
-            onVerify={handleVerifyOtp} 
-            onResend={handleResendOtp} 
-            email={email} 
-            user_id={user_id} 
-            // Pass isLoading to OtpInput if it needs to disable its fields
-            // You might need to add an 'disabled' prop to your OtpInput component
-          />
+          <motion.div key="otp_entry" variants={formVariants} initial="hidden" animate="show" exit="exit" className="w-full">
+            <div className="text-center mb-8">
+              <div className="inline-flex justify-center items-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 border border-primary/20">
+                  <Mail className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">Verify Email</h1>
+              <p className="text-muted-foreground mt-2">We sent a 4-digit code to <span className="font-semibold text-foreground">{email}</span></p>
+            </div>
+            <OtpInput onVerify={handleVerifyOtp} onResend={handleResendOtp} email={email} user_id={user_id} isLoading={isLoading} />
+          </motion.div>
         );
 
       case 'new_password_entry':
         return (
-          <form className="space-y-6" onSubmit={handleSetNewPassword}>
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">Set Your New Password</h1>
-              <p className="text-gray-500">Enter and confirm your new password below.</p>
-            </div>
-            <div>
-              <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
-                New Password
-              </label>
-              <input
-                id="new-password"
-                name="new-password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="w-full px-4 py-2 border border-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
-                placeholder="Enter new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label htmlFor="confirm-new-password" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm New Password
-              </label>
-              <input
-                id="confirm-new-password"
-                name="confirm-new-password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="w-full px-4 py-2 border border-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
-                placeholder="Confirm new password"
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#471396] hover:bg-[#471396]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Setting Password...' : 'Set Password'}
-            </button>
-          </form>
+          <motion.div key="new_password_entry" variants={formVariants} initial="hidden" animate="show" exit="exit" className="w-full">
+            <motion.div variants={staggerVariants} initial="hidden" animate="show" className="text-center mb-8">
+               <div className="inline-flex justify-center items-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 border border-primary/20">
+                  <Lock className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">Set New Password</h1>
+              <p className="text-muted-foreground mt-2">Create a strong, new password.</p>
+            </motion.div>
+
+            <form className="space-y-5" onSubmit={handleSetNewPassword}>
+              <motion.div variants={staggerVariants} initial="hidden" animate="show" className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="new-password" className="text-sm font-semibold text-foreground">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <input
+                      id="new-password"
+                      name="new-password"
+                      type="password"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border/50 text-foreground rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="confirm-new-password" className="text-sm font-semibold text-foreground">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <input
+                      id="confirm-new-password"
+                      name="confirm-new-password"
+                      type="password"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border/50 text-foreground rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      placeholder="••••••••"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+              
+              <motion.div variants={staggerVariants} initial="hidden" animate="show" className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-6 rounded-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-primary/40 hover:shadow-xl hover:-translate-y-1"
+                >
+                  {isLoading ? (
+                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Saving...</>
+                  ) : (
+                    <>Set Password <CheckCircle2 className="ml-2 h-5 w-5" /></>
+                  )}
+                </Button>
+              </motion.div>
+            </form>
+          </motion.div>
         );
 
       case 'reset_success':
         return (
-          <div className="text-center space-y-6">
-             <h1 className="text-3xl font-bold text-gray-800 mb-2">Password Reset Successful!</h1>
-             <p className="text-gray-500">You will be redirected to the login page shortly.</p>
-             <div className="flex justify-center">
-                 {/* Optional: Add a small loading spinner here if desired */}
-             </div>
-          </div>
+          <motion.div key="reset_success" variants={formVariants} initial="hidden" animate="show" className="w-full text-center space-y-6 py-6">
+             <div className="inline-flex justify-center items-center w-24 h-24 rounded-full bg-green-500/10 mb-2 border-4 border-green-500/20">
+                <CheckCircle2 className="w-12 h-12 text-green-500" />
+            </div>
+             <h1 className="text-3xl font-bold tracking-tight text-foreground">Password Reset!</h1>
+             <p className="text-muted-foreground text-md max-w-[250px] mx-auto">Your password has been successfully updated. Redirecting to login...</p>
+          </motion.div>
         );
       default:
-        return null; // Should not happen
+        return null;
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-md mx-auto font-sans">
-      {/* Display success or error messages */}
-      {message && (
-        <div className={`p-3 mb-4 rounded-lg text-sm 
-          ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {message.text}
-        </div>
-      )}
+    <div className="w-full font-sans">
+      <AnimatePresence mode="wait">
+        {message && (
+          <motion.div 
+            key="message-box"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }} 
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className={`p-4 mb-6 rounded-xl text-sm font-medium border ${
+              message.type === 'success' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-destructive/10 text-destructive border-destructive/20'
+            }`}
+          >
+            {message.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {renderContent()}
+      <AnimatePresence mode="wait">
+        {renderContent()}
+      </AnimatePresence>
 
-      {/* Link to Login Page if not in final success state (as it will redirect automatically) */}
       {step !== 'reset_success' && (
-        <div className="mt-6 text-center text-sm">
-          <p className="text-gray-600">
+        <motion.div 
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+          className="mt-8 text-center"
+        >
+          <p className="text-sm text-muted-foreground">
             Remembered your password?{' '}
-            <Link href="/login" className="font-medium text-[#471396] hover:text-blue-500">
+            <Link href="/login" className="font-bold text-primary hover:text-primary/80 transition-colors">
               Sign in
             </Link>
           </p>
-        </div>
+        </motion.div>
       )}
     </div>
   );

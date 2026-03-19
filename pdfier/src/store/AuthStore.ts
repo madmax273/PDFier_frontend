@@ -2,8 +2,6 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { UsageMetrics,AuthUser,User,GuestUser, } from '@/types/auth';
 import Cookies from 'js-cookie';
-import router from 'next/router';
-
 
 type AuthState = {
   isLoggedIn: boolean;
@@ -14,16 +12,15 @@ type AuthState = {
   isSidebarCollapsed: boolean;
 };
 
-
 interface AuthActions {
-  initializeAuth: () => Promise<void>; // To check session on app load
-  login: (userData: User, refreshToken: string,accessToken:string) => void; // Called by login page
-  logout: () => Promise<void>; // Handles logging out
-  updateUserUsage: (newUsage: UsageMetrics) => void; // To update usage after an operation
-  updateGuestUsage: (processedToday: number) => void; // To update usage after an operation
+  initializeAuth: () => Promise<void>; 
+  login: (userData: User, refreshToken: string,accessToken:string) => void; 
+  logout: () => Promise<void>; 
+  updateUserUsage: (newUsage: UsageMetrics) => void; 
+  updateGuestUsage: (processedToday: number) => void; 
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 // Default guest user object (matching GuestUser interface)
 const defaultGuestUser: GuestUser = {
@@ -34,10 +31,9 @@ const defaultGuestUser: GuestUser = {
   plan_type: 'guest',
   usage_metrics: {
     pdf_processed_today: 0,
-    pdf_processed_limit_daily: 10, // Example guest limits
+    pdf_processed_limit_daily: 10, 
   },
 };
-
 
 export const useAuthStore = create<AuthState & AuthActions>()(
   persist(
@@ -46,7 +42,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       refreshToken: null,
       accessToken: null,
       user: null,
-      isInitializing: false,
+      isInitializing: true,
       isSidebarCollapsed: true,
       initializeAuth: async () => {
         set({ isInitializing: true });
@@ -56,7 +52,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             method: 'GET',
             credentials: 'include',
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
             },
           });
 
@@ -86,6 +82,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                   expires: 420,
                   secure: process.env.NODE_ENV === 'production',
                   sameSite: 'Lax',
+                  path: '/',
                 });
                 if (typeof window !== 'undefined') {
                   window.location.reload();
@@ -94,9 +91,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 console.warn("Refresh token is invalid or has expired. Setting user as guest.");
                 set({ user: defaultGuestUser, isLoggedIn: false });
                 get().logout();
-                router.push('/login');
-
-
+                if (typeof window !== 'undefined') window.location.href = '/login';
               }
             } 
             else {
@@ -123,11 +118,13 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           expires: 4320,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'Lax',
+          path: '/',
         });
         Cookies.set('accessToken', accessToken, {
           expires: 420,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'Lax',
+          path: '/',
         });
         
         
@@ -138,8 +135,8 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       },
 
       logout: async () => {
-        Cookies.remove('refreshToken');
-        Cookies.remove('accessToken');
+        Cookies.remove('refreshToken', { path: '/' });
+        Cookies.remove('accessToken', { path: '/' });
         set({ user: defaultGuestUser, isLoggedIn: false, refreshToken: null,accessToken:null });
       },
 
@@ -188,7 +185,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           refreshToken: state.refreshToken,
           isLoggedIn: state.isLoggedIn,
           user: state.user,
-          isInitializing: state.isInitializing,
         };
         return partial;
       },

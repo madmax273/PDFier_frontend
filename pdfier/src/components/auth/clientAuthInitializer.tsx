@@ -7,13 +7,9 @@ import { useAuthStore } from '@/store/AuthStore';
 const ClientAuthInitializer = () => {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
-  useEffect(() => {
-    // Only run on client side
-    if (typeof window !== 'undefined') {
-      initializeAuth();
-    }
-  }, [initializeAuth]);
-
+useEffect(() => {
+  initializeAuth();
+}, [initializeAuth]);
 
   return null; // no UI, just initializes auth
 };

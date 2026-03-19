@@ -1,10 +1,12 @@
 "use client";
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
 import Link from "next/link";
 import { useState } from "react";
 import OtpInput from "@/components/auth/otp";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Mail, Lock, User, Loader2, ArrowRight, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Signup() {
   const router = useRouter();
@@ -33,18 +35,15 @@ export default function Signup() {
 
       if (response.ok) {
         setMessage({ type: 'success', text: data.message || 'Signup successful! Please verify your email with the OTP.' });
-        setUser_id(data.user_id); // Store the email for OTP step
-        setShowOtpInput(true); // Show the OTP input UI
-        // Optionally clear password field for security
+        setUser_id(data.user_id);
+        setShowOtpInput(true);
         setPassword('');
       } else {
         setMessage({ type: 'error', text: data.detail || 'Signup failed. Please try again.' });
       }
 
-      console.log(data);
     } catch (error) {
       setIsLoading(false);
-      console.error("Signup error:", error);
       setMessage({ type: 'error', text: 'Network error or unable to connect to the server.' });
     }
   };
@@ -67,14 +66,13 @@ export default function Signup() {
       if (response.ok) {
         setMessage({ type: 'success', text: data.message || 'Account verified successfully! Redirecting to login...' });
         setTimeout(() => {
-          router.push('/login'); // Redirect to login page after successful verification
-        }, 2000); // Give user a moment to read success message
+          router.push('/login');
+        }, 2000);
       } else {
         setMessage({ type: 'error', text: data.detail || 'OTP verification failed. Please try again.' });
       }
     } catch (error) {
       setIsLoading(false);
-      console.error("OTP verification error:", error);
       setMessage({ type: 'error', text: 'Network error during OTP verification.' });
     }
   };
@@ -99,136 +97,176 @@ export default function Signup() {
       }
     } catch (error) {
       setIsLoading(false);
-      console.error("Resend OTP error:", error);
       setMessage({ type: 'error', text: 'Network error during OTP resend.' });
     }
   };
 
+  const formVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { staggerChildren: 0.1 } }
+  };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-md mx-auto">
+    <motion.div variants={formVariants} initial="hidden" animate="show" className="w-full">
       {message && (
-        <div className={`p-3 mb-4 rounded-md text-sm ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }}
+            className={`p-4 mb-6 rounded-xl text-sm font-medium border ${
+                message.type === 'success' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-destructive/10 text-destructive border-destructive/20'
+            }`}
+        >
           {message.text}
-        </div>
+        </motion.div>
       )}
 
       {showOtpInput ? (
-        <OtpInput onVerify={handleVerifyOtp} onResend={handleResendOtp} email={email} user_id={user_id} />
+        <motion.div variants={formVariants}>
+            <div className="text-center mb-8">
+                <div className="inline-flex justify-center items-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 border border-primary/20">
+                    <Mail className="w-8 h-8 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Verify Email</h1>
+                <p className="text-muted-foreground mt-2">We sent a verification code to your email.</p>
+            </div>
+            <div className="bg-card p-6 rounded-2xl border border-border/50">
+               <OtpInput onVerify={handleVerifyOtp} onResend={handleResendOtp} email={email} user_id={user_id} />
+            </div>
+        </motion.div>
       ) : (
         <>
-          <div className="text-center mb-8">
-            <img src="/images/PDFier_logo.png" alt="PDFier Logo" className="h-50 w-70 mx-auto mt-[-40px] mb-[-40px]" />
-            <p className="text-gray-500">Sign up to get started with PDFier</p>
-          </div>
+          <motion.div variants={formVariants} className="text-center mb-8">
+            <div className="flex items-center justify-center space-x-3 mb-6">
+              <div className="relative flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 text-primary shadow-inner border border-primary/20">
+                <Sparkles size={24} className="absolute text-primary" />
+              </div>
+              <span className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-500 tracking-tight">
+                PDFier
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Account</h1>
+            <p className="text-muted-foreground mt-2">Join PDFier for advanced document tools</p>
+          </motion.div>
 
-          <form className="space-y-5" onSubmit={handleSignup}>
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+          <form className="space-y-4" onSubmit={handleSignup}>
+            <motion.div variants={formVariants} className="space-y-2">
+              <label htmlFor="username" className="text-sm font-semibold text-foreground">
                 Username
               </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                className="w-full px-4 py-2 border border-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email address
-                </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border/50 text-foreground rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                  placeholder="johndoe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="w-full px-4 py-2 border border-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
+            </motion.div>
 
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
+            <motion.div variants={formVariants} className="space-y-2">
+              <label htmlFor="email" className="text-sm font-semibold text-foreground">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border/50 text-foreground rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="w-full px-4 py-2 border border-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
+            </motion.div>
 
-            <button
-              type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#471396] hover:bg-[#471396]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]/50 transition"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing up...' : 'Sign up'}
-            </button>
+            <motion.div variants={formVariants} className="space-y-2">
+              <label htmlFor="password" className="text-sm font-semibold text-foreground">
+                Password
+              </label>
+              <div className="relative">
+                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border/50 text-foreground rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                  placeholder="Create a strong password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+            </motion.div>
+
+            <motion.div variants={formVariants} className="pt-2">
+                <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-6 rounded-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-primary/40 hover:shadow-xl hover:-translate-y-1"
+                >
+                    {isLoading ? (
+                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creating account...</>
+                    ) : (
+                        <>Sign up <ArrowRight className="ml-2 h-5 w-5" /></>
+                    )}
+                </Button>
+            </motion.div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-500"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
-              </div>
+          <motion.div variants={formVariants} className="mt-8">
+            <div className="flex items-center justify-center">
+              <div className="flex-grow border-t border-border/50"></div>
+              <span className="mx-4 text-xs uppercase tracking-widest font-semibold text-muted-foreground">
+                Or continue with
+              </span>
+              <div className="flex-grow border-t border-border/50"></div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button
+            <div className="mt-6 flex flex-col gap-4">
+              <Button
                 type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-500 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
-                // onClick={handleGoogleSignIn}
+                variant="outline"
+                onClick={() => {
+                  window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google/login`;
+                }}
+                className="w-full py-6 rounded-xl border-border/50 hover:bg-secondary/80 focus:ring-2 focus:ring-primary transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
                 disabled={isLoading}
               >
-                <FcGoogle className="h-5 w-5" />
-              </button>
-              <button
-                type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-500 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
-                disabled={isLoading} // Disable while loading
-              >
-                <FaGithub className="h-5 w-5 text-gray-800" />
-              </button>
+                <FcGoogle className="h-6 w-6 mr-2" /> Continue with Google
+              </Button>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="mt-6 text-center text-sm">
-            <p className="text-gray-600">
+          <motion.div variants={formVariants} className="mt-8 text-center">
+            <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-[#471396] hover:text-[#471396]/90">
+              <Link href="/login" className="font-bold text-primary hover:text-primary/80 transition-colors">
                 Sign in
               </Link>
             </p>
-          </div>
+          </motion.div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

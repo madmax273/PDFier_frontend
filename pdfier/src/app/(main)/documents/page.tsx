@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FileText, FileDown } from 'lucide-react';
+import { FileText, FileDown, Eye, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Cookies from 'js-cookie';
+import { motion, Variants } from 'framer-motion';
+
 interface Document {
   name: string;
   id: string;
@@ -21,6 +22,10 @@ export default function DocumentsPage() {
     const fetchDocuments = async () => {
         const accessToken = Cookies.get('accessToken');
         const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
+        if(!accessToken) {
+            setIsLoading(false);
+            return;
+        }
       try {
         const response = await fetch(`${BACKEND_URL}/api/v1/documents/list-user-files`, {
           headers: {
@@ -44,7 +49,6 @@ export default function DocumentsPage() {
   }, []);
 
   const formatFileName = (name: string) => {
-    // Remove the 'chat_timestamp_' prefix and file extension
     return name
       .replace(/^chat_\d+_/, '')
       .replace(/\.pdf$/i, '')
@@ -52,124 +56,142 @@ export default function DocumentsPage() {
   };
 
   const formatDate = (timestamp: string) => {
-    // Extract timestamp from filename (format: chat_TIMESTAMP_name.pdf)
     const match = timestamp.match(/^chat_(\d+)_/);
     if (!match) return 'Unknown date';
     
     const date = new Date(parseInt(match[1]));
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     });
+  };
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-pulse">Loading your documents...</div>
-        </div>
+      <div className="flex flex-col justify-center items-center h-[60vh] text-primary">
+        <Loader2 className="w-12 h-12 animate-spin mb-4" />
+        <p className="text-lg font-medium animate-pulse text-muted-foreground">Loading your secure vault...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <div className="text-red-500 mb-4">
-            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900">Error loading documents</h3>
-          <p className="mt-1 text-sm text-gray-500">{error}</p>
-          <div className="mt-6">
-            <Button 
-              onClick={() => window.location.reload()}
-              className="bg-[#471396] hover:bg-[#3a0f77]"
-            >
-              Try Again
-            </Button>
-          </div>
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex justify-center py-20">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-3xl p-8 max-w-md text-center">
+            <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-foreground mb-2">Sync Error</h3>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <Button onClick={() => window.location.reload()} className="rounded-full px-8">Try Again</Button>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-[#2d0f57]">Your Documents</h1>
-        <Button asChild className="bg-[#471396] hover:bg-[#3a0f77]">
-          <Link href="/tools">All PDF Tools</Link>
-        </Button>
-      </div>
+    <motion.div 
+      className="max-w-7xl mx-auto space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+        <div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl mb-2">
+                Cloud <span className="text-primary">Vault</span>
+            </h1>
+            <p className="text-lg text-muted-foreground">
+                Securely manage and access your processed PDFs.
+            </p>
+        </div>
+        <Link 
+            href="/tools" 
+            className="inline-flex items-center justify-center rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-10 px-8 py-2"
+        >
+          Process New PDF
+        </Link>
+      </motion.div>
 
-      {documents.length === 0 ? (
-        <div className="text-center py-12">
-          <FileText className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-lg font-medium text-gray-900">No documents found</h3>
-          <p className="mt-1 text-sm text-gray-500">Upload a document to get started</p>
-          <div className="mt-6">
-            <Button asChild className="bg-[#471396] hover:bg-[#3a0f77]">
-              <Link href="/tools">Upload Document</Link>
-            </Button>
+      {!Cookies.get('accessToken') ? (
+         <motion.div variants={itemVariants} className="bg-card border-2 border-dashed border-border/50 rounded-3xl flex flex-col items-center justify-center py-24 text-center glass-panel">
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+              <FileText className="w-10 h-10 text-primary" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-3">Sign in to Access Your Vault</h3>
+            <p className="text-muted-foreground mb-8 max-w-md text-lg">Your processed documents are securely stored in the cloud. Log in to view them.</p>
+            <Link href="/login" className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+              Sign In Now
+            </Link>
+        </motion.div>
+      ) : documents.length === 0 ? (
+        <motion.div variants={itemVariants} className="bg-card border border-border/50 rounded-3xl flex flex-col items-center justify-center py-24 text-center glass-panel">
+          <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mb-6">
+            <FileText className="w-10 h-10 text-muted-foreground" />
           </div>
-        </div>
+          <h3 className="text-2xl font-bold text-foreground mb-3">Your Vault is Empty</h3>
+          <p className="text-muted-foreground mb-8 max-w-md text-lg">You haven't processed any documents yet. Try compressing or chatting with a PDF.</p>
+          <Link href="/tools" className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+            Explore Tools
+          </Link>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {documents.map((doc) => (
-            <Card key={doc.id} className="hover:shadow-lg transition-shadow border border-gray-200">
-              <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-lg bg-[#f0e9ff]">
-                    <FileText className="h-6 w-6 text-[#471396]" />
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {documents.map((doc, idx) => (
+            <motion.div 
+               variants={itemVariants}
+               key={doc.id} 
+               className="group relative bg-card rounded-2xl border border-border/50 p-6 hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-xl overflow-hidden glass-panel flex flex-col h-full"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors" />
+              
+              <div className="relative z-10 flex-1">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20 group-hover:scale-110 transition-transform">
+                    <FileText className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg text-[#2d0f57] truncate">
-                      {formatFileName(doc.name)}
-                    </CardTitle>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatDate(doc.name)}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500 truncate pr-2">
-                    {doc.name.length > 30 ? `${doc.name.substring(0, 30)}...` : doc.name}
-                  </span>
-                  <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link 
-                        href={`/viewer/${doc.id}`} 
-                        className="text-[#471396] hover:bg-[#f0e9ff]"
-                      >
-                        View
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <a 
-                        href={doc.url} 
-                        download
-                        className="text-[#471396] hover:bg-[#f0e9ff]"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <FileDown className="h-4 w-4" />
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <h3 className="text-lg font-bold text-foreground line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                    {formatFileName(doc.name)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {formatDate(doc.name)}
+                  </p>
+              </div>
+
+              <div className="relative z-10 border-t border-border/50 pt-4 mt-auto flex items-center justify-between gap-2">
+                <a 
+                    href={`https://docs.google.com/viewer?url=${encodeURIComponent(doc.url)}&embedded=true`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold bg-secondary hover:bg-primary hover:text-primary-foreground transition-colors py-2 rounded-lg"
+                >
+                    <Eye className="w-4 h-4" /> Preview
+                </a>
+                <a 
+                    href={doc.url} 
+                    download
+                    className="flex-shrink-0 flex items-center justify-center w-10 h-10 bg-secondary hover:bg-secondary/80 transition-colors rounded-lg text-foreground"
+                    title="Download Original PDF"
+                >
+                    <FileDown className="w-5 h-5" />
+                </a>
+              </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

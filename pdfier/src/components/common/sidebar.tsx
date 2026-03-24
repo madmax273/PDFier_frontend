@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -17,109 +17,111 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Sigma,
-  
 } from "lucide-react";
 
-// In sidebar.tsx
 interface SidebarProps {
   isOpen: boolean;
   collapsed: boolean;
-  onCollapse: () => void;  // Add this line
+  onCollapse: () => void;
+  onClose: () => void;
 }
 
-
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, collapsed, onCollapse }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, collapsed, onCollapse, onClose }) => {
   const pathname = usePathname();
 
-const navItems = [
+  const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "My Documents", href: "/documents", icon: FileText },
+    { name: "Chat with PDF (AI)", href: "/chat-ai", icon: MessageSquare },
     { name: "Merge PDF", href: "/tools/merge", icon: ArrowRightLeft },
     { name: "Compress PDF", href: "/tools/compress", icon: Minimize2 },
     { name: "Protect PDF", href: "/tools/protect", icon: Lock },
-    { name: "Convert PDF", href: "/tools/convert", icon: FilePlus },
-    { name: "All PDF Tools", href: "/tools", icon: Sparkles },
-    { name: "My Documents", href: "/documents", icon: FileText },
-    { name: "Chat with PDF (AI)", href: "/chat-ai", icon: MessageSquare },
-];
+    { name: "All Tools", href: "/tools", icon: Sparkles },
+  ];
 
-const bottomNavItems = [
+  const bottomNavItems = [
     { name: "Settings", href: "/settings", icon: Settings },
     { name: "Help & Support", href: "/help", icon: HelpCircle },
-];
+  ];
 
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden transition-opacity" 
+          onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 ${
+        className={`fixed inset-y-0 left-0 bg-card/95 backdrop-blur-xl border-r border-border/50 flex flex-col z-40 transform transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-transform shadow-2xl shadow-primary/5 ${
           collapsed ? "w-20" : "w-64"
-        } bg-[#471396] dark:bg-[#471396] border-r border-gray-200 dark:border-gray-700 flex flex-col z-40 transform md:translate-x-0 transition-all duration-200 ease-in-out h-full`}
+        } ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-white-700">
-          <Link
-            href="/dashboard"
-            className="flex items-center space-x-2"
-          >
-            <img
-              src="/images/PDFier_logo.png"
-              className="h-8 w-8"
-              alt="PDFier Logo"
-            />
+        <div className="flex items-center justify-between p-4 h-16 border-b border-border/50">
+          <Link href="/dashboard" className="flex items-center space-x-2 group shrink-0">
+            <div className="relative flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+              <Sparkles size={18} className="absolute text-primary" />
+            </div>
             {!collapsed && (
-              <span className="text-xl font-semibold dark:text-white">
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-500 truncate">
                 PDFier
               </span>
             )}
           </Link>
           {!collapsed && (
-            <X size={25} onClick={onCollapse} className="text-gray-600 hover:text-white" />
+            <button onClick={onClose} className="text-muted-foreground hover:text-foreground md:hidden transition-colors">
+              <X size={20} />
+            </button>
           )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-1.5 scrollbar-none">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center ${
-                  collapsed ? "justify-center" : ""
-                } px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                onClick={() => {
+                  if (isOpen) onClose();
+                }}
+                className={`group relative flex items-center ${
+                  collapsed ? "justify-center" : "justify-start"
+                } px-3 py-2.5 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? "bg-blue-50 text-blue-700 dark:bg-gray-800/30 dark:text-blue-400"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground active:scale-95"
                 }`}
               >
                 <item.icon
-                  className={`w-5 h-5 ${
-                    collapsed ? "" : "mr-3"
-                  } ${
-                    isActive
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-500 dark:text-gray-400"
+                  className={`shrink-0 w-5 h-5 transition-transform duration-200 ${
+                    !isActive && "group-hover:scale-110"
+                  } ${collapsed ? "" : "mr-3"} ${
+                    isActive ? "text-primary-foreground" : ""
                   }`}
                   aria-hidden="true"
                 />
-                {!collapsed && <span>{item.name}</span>}
+                {!collapsed && <span className="text-sm font-medium tracking-wide truncate">{item.name}</span>}
+                
+                {/* Tooltip for collapsed state */}
+                {collapsed && (
+                  <div className="absolute left-14 px-2 py-1 bg-popover text-popover-foreground text-xs rounded-md shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                    {item.name}
+                  </div>
+                )}
               </Link>
             );
           })}
         </nav>
 
         {/* Bottom section */}
-        <div className="p-4 border-t border-white dark:border-white">
+        <div className="px-3 py-4 border-t border-border/50 space-y-1.5 bg-card/50">
           {bottomNavItems.map((item) => {
             const isActive = pathname === item.href;
 
@@ -127,43 +129,48 @@ const bottomNavItems = [
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center ${
-                  collapsed ? "justify-center" : ""
-                } px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                onClick={() => {
+                  if (isOpen) onClose();
+                }}
+                className={`group relative flex items-center ${
+                  collapsed ? "justify-center" : "justify-start"
+                } px-3 py-2.5 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
                 <item.icon
-                  className={`w-5 h-5 ${
-                    collapsed ? "" : "mr-3"
-                  } ${
-                    isActive
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-500 dark:text-gray-400"
+                  className={`w-5 h-5 shrink-0 ${collapsed ? "" : "mr-3"} ${
+                    isActive ? "text-primary" : ""
                   }`}
                   aria-hidden="true"
                 />
-                {!collapsed && <span>{item.name}</span>}
+                {!collapsed && <span className="text-sm font-medium">{item.name}</span>}
+                
+                {/* Tooltip */}
+                {collapsed && (
+                  <div className="absolute left-14 px-2 py-1 bg-popover text-popover-foreground text-xs rounded-md shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                    {item.name}
+                  </div>
+                )}
               </Link>
             );
           })}
 
-          {/* Collapse button */}
+          {/* Collapse toggle */}
           <button
-            
             onClick={onCollapse}
             className={`w-full mt-2 flex items-center ${
               collapsed ? "justify-center" : "justify-between"
-            } px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200`}
+            } px-3 py-2.5 text-sm font-medium text-muted-foreground rounded-xl hover:bg-secondary hover:text-foreground transition-all duration-200 active:scale-95`}
           >
             <div className="flex items-center">
               {collapsed ? (
-                <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <ChevronRight className="w-5 h-5" />
               ) : (
                 <>
-                  <ChevronLeft className="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400" />
+                  <ChevronLeft className="w-5 h-5 mr-3" />
                   <span>Collapse</span>
                 </>
               )}

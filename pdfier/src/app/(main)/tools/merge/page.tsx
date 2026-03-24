@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/AuthStore'; // Import Zustand store
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { Toast } from '@/components/ui/toast';
-
+import { motion, Variants } from 'framer-motion';
 
 // Define a type for the PDF file object
 interface PdfFile {
@@ -176,229 +176,272 @@ export default function MergePDFPage() {
     }
   };
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6 lg:p-8">
-      {/* Toast Notification */}
-    {toast && (
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        onDismiss={() => setToast(null)}
-      />
-    )}
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onDismiss={() => setToast(null)}
+        />
+      )}
+      
       {/* Breadcrumbs */}
-      <nav className="text-sm font-medium text-gray-500 mb-6 flex items-center space-x-2">
-        <Link href="/" className="text-gray-400 hover:text-gray-600">
+      <nav className="text-sm font-medium text-muted-foreground mb-6 flex items-center space-x-2 max-w-4xl mx-auto">
+        <Link href="/" className="hover:text-foreground transition-colors">
           <Home size={16} />
         </Link>
         <ChevronRight size={16} />
-        <Link href="/tools" className="text-gray-400 hover:text-gray-600">
+        <Link href="/tools" className="hover:text-foreground transition-colors">
           Tools
         </Link>
         <ChevronRight size={16} />
-        <span>Merge PDF</span>
+        <span className="text-foreground">Merge PDF</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Merge PDF</h1>
+      <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-4xl mx-auto">
+        <motion.div variants={itemVariants} className="text-center mb-10">
+          <h1 className="text-3xl font-extrabold text-foreground mb-2 sm:text-4xl tracking-tight">Merge PDF</h1>
+          <p className="text-muted-foreground text-lg">Combine multiple PDF files into a single, unified document</p>
+        </motion.div>
 
-      {/* Main Upload Area */}
-      <section
-        className={`relative bg-white border-3 border-dashed rounded-xl p-8 text-center transition-all duration-300
-          ${isDragOver ? 'border-[#7A00E6]' : 'border-[#A294F9]'}`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        <div className="flex flex-col items-center justify-center py-12">
-          {/* Main Icon */}
-          <Layers size={64} className="text-app-purple-400 mb-6" /> 
-          <p className="text-lg text-gray-700 font-semibold mb-2">Drag & Drop PDFs Here</p>
-          <p className="text-gray-500 mb-6">or</p>
+        <div className="space-y-8">
+          {/* Main Upload Area */}
+          <motion.section
+            variants={itemVariants}
+            className={`glass-panel border-4 border-dashed rounded-3xl p-12 text-center transition-all duration-300 relative overflow-hidden cursor-pointer ${
+              isDragOver ? 'border-primary bg-primary/10 scale-105' : 'border-primary/30 hover:border-primary/60'
+            }`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/30 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-          {/* Choose Files Button with Dropdown */}
-          <div className="relative inline-block text-left">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-lg border border-transparent shadow-sm px-6 py-3 bg-[#471396] text-base font-medium text-white hover:bg-[#471396]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]/50 transition-colors duration-200"
-              onClick={() => setShowDropdown(!showDropdown)}
+            <div className="relative z-10 flex flex-col items-center justify-center py-6">
+              <div className="p-4 bg-primary/10 rounded-2xl shadow-inner border border-primary/20 mb-6">
+                <Layers className="h-10 w-10 text-primary" />
+              </div>
               
-            >
-              <FilePlus size={20} className="mr-2" />
-              Choose Files
-              <ChevronRight size={16} className="-mr-1 ml-2 transform rotate-90" />
-            </button>
+              <p className="text-xl text-foreground font-bold mb-2 tracking-tight">Drag & Drop PDFs Here</p>
+              <p className="text-muted-foreground font-medium mb-8">or</p>
 
-            {showDropdown && (
-              <div className="origin-top-right absolute left-1/2 -translate-x-1/2 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-                  <button
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                    role="menuitem"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent event bubbling
-                      fileInputRef.current?.click();
-                    }}
+              {/* Choose Files Button with Dropdown */}
+              <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-xl shadow-lg px-8 py-4 bg-primary text-lg font-bold text-primary-foreground hover:bg-primary/90 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50 transition-all duration-200"
+                  onClick={() => setShowDropdown(!showDropdown)}
+                >
+                  <FilePlus size={22} className="mr-3" />
+                  Choose Files
+                  <ChevronRight size={18} className={`ml-3 transition-transform duration-200 ${showDropdown ? 'rotate-90' : ''}`} />
+                </button>
+
+                {showDropdown && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    className="origin-top mt-4 w-64 rounded-xl shadow-2xl bg-card border border-border/50 ring-1 ring-black ring-opacity-5 focus:outline-none absolute z-20 left-1/2 -translate-x-1/2 overflow-hidden"
                   >
-                    <HardDrive size={18} className="mr-3 text-gray-500" /> From device
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      multiple
-                      accept="application/pdf"
-                      onChange={(e) => {
-                        handleFileSelect(e);
-                        setShowDropdown(false);
-                      }}
-                      onClick={(e) => e.stopPropagation()} // Prevent event bubbling
-                    />
-                  </button>
-                  {/* Disabled Pro/Cloud options */}
-                  <a
-                    href="#"
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 opacity-50 cursor-not-allowed"
-                    role="menuitem"
-                    onClick={(e) => e.preventDefault()} // Prevent navigation
-                  >
-                    <Cloud size={18} className="mr-3 text-gray-500" /> From Smallpdf <span className="ml-auto text-yellow-600 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100">Pro</span>
-                  </a>
-                  <a
-                    href="#"
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 opacity-50 cursor-not-allowed"
-                    role="menuitem"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <Dropbox size={18} className="mr-3 text-gray-500" /> From Dropbox
-                  </a>
-                  <a
-                    href="#"
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 opacity-50 cursor-not-allowed"
-                    role="menuitem"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <Box size={18} className="mr-3 text-gray-500" /> From Google Drive
-                  </a>
-                  <a
-                    href="#"
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 opacity-50 cursor-not-allowed"
-                    role="menuitem"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <Box size={18} className="mr-3 text-gray-500" /> From OneDrive
-                  </a>
-                </div>
+                    <div className="py-2" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                      <button
+                        className="flex items-center w-full px-5 py-3 text-sm font-semibold text-foreground hover:bg-secondary transition-colors"
+                        role="menuitem"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                      >
+                        <HardDrive size={20} className="mr-3 text-primary" /> From device
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          multiple
+                          accept="application/pdf"
+                          onChange={(e) => {
+                            handleFileSelect(e);
+                            setShowDropdown(false);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </button>
+                      <a
+                        href="#"
+                        className="flex items-center w-full px-5 py-3 text-sm font-semibold text-muted-foreground opacity-50 cursor-not-allowed border-t border-border/50"
+                        role="menuitem"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        <Cloud size={20} className="mr-3 text-muted-foreground" /> Smallpdf <span className="ml-auto text-yellow-600 text-xs font-bold px-2 py-0.5 rounded-md bg-yellow-500/20">PRO</span>
+                      </a>
+                      <a
+                        href="#"
+                        className="flex items-center w-full px-5 py-3 text-sm font-semibold text-muted-foreground opacity-50 cursor-not-allowed border-t border-border/50"
+                        role="menuitem"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        <Dropbox size={20} className="mr-3 text-muted-foreground" /> Dropbox
+                      </a>
+                      <a
+                        href="#"
+                        className="flex items-center w-full px-5 py-3 text-sm font-semibold text-muted-foreground opacity-50 cursor-not-allowed border-t border-border/50"
+                        role="menuitem"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        <Box size={20} className="mr-3 text-muted-foreground" /> Google Drive
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          </motion.section>
+
+          {/* Selected Files List */}
+          {selectedFiles.length > 0 && (
+            <motion.section variants={itemVariants} className="bg-card rounded-3xl shadow-xl p-8 border border-border/50 glass-panel">
+              <h2 className="text-2xl font-bold text-foreground mb-6">Files to Merge ({selectedFiles.length})</h2>
+              <ul className="space-y-4">
+                {selectedFiles.map((file, index) => (
+                  <motion.li 
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    key={file.id} 
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-background p-5 rounded-2xl border border-border/50 hover:border-primary/50 transition-colors shadow-sm gap-4"
+                  >
+                    <div className="flex items-center space-x-4 flex-grow w-full">
+                      <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                        <FileText size={24} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="block font-bold text-foreground truncate text-base mb-1">{file.name}</span>
+                        <span className="block text-sm text-muted-foreground font-medium">{file.size}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 w-full sm:w-auto sm:ml-4 bg-secondary/50 p-1 rounded-xl">
+                      <button
+                        onClick={() => moveFile(file.id, 'up')}
+                        disabled={index === 0}
+                        className="p-2 rounded-lg hover:bg-background hover:shadow disabled:opacity-30 disabled:hover:shadow-none transition-all"
+                        aria-label="Move file up"
+                      >
+                        <ArrowUp size={20} className="text-foreground" />
+                      </button>
+                      <button
+                        onClick={() => moveFile(file.id, 'down')}
+                        disabled={index === selectedFiles.length - 1}
+                        className="p-2 rounded-lg hover:bg-background hover:shadow disabled:opacity-30 disabled:hover:shadow-none transition-all"
+                        aria-label="Move file down"
+                      >
+                        <ArrowDown size={20} className="text-foreground" />
+                      </button>
+                      <div className="w-px h-6 bg-border/50 mx-1"></div>
+                      <button
+                        onClick={() => removeFile(file.id)}
+                        className="p-2 rounded-lg hover:bg-destructive/10 transition-colors"
+                        aria-label="Remove file"
+                      >
+                        <XCircle size={20} className="text-destructive" />
+                      </button>
+                    </div>
+                  </motion.li>
+                ))}
+              </ul>
+              
+              <div className="mt-8 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-sm font-medium text-muted-foreground w-full sm:w-auto text-center sm:text-left">
+                  Drag files to reorder or use the arrows.
+                </p>
+                <button
+                  onClick={handleMergePdfs}
+                  disabled={selectedFiles.length < 2 || isMerging}
+                  className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl shadow-lg px-10 py-4 bg-primary text-lg font-bold text-primary-foreground hover:bg-primary/90 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
+                >
+                  {isMerging ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Merging...
+                    </>
+                  ) : (
+                    <>
+                      <Layers size={22} className="mr-3" />
+                      Merge PDFs
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.section>
+          )}
         </div>
-      </section>
-
-      {/* Selected Files List */}
-      {selectedFiles.length > 0 && (
-        <section className="mt-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Files to Merge ({selectedFiles.length})</h2>
-          <ul className="space-y-3">
-            {selectedFiles.map((file, index) => (
-              <li key={file.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center space-x-3 flex-grow">
-                  <FileText size={20} className="text-app-purple-500" />
-                  <span className="font-medium text-gray-800 truncate">{file.name}</span>
-                  <span className="text-sm text-gray-500 ml-2">({file.size})</span>
-                </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  <button
-                    onClick={() => moveFile(file.id, 'up')}
-                    disabled={index === 0}
-                    className="p-2 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    aria-label="Move file up"
-                  >
-                    <ArrowUp size={18} className="text-gray-600" />
-                  </button>
-                  <button
-                    onClick={() => moveFile(file.id, 'down')}
-                    disabled={index === selectedFiles.length - 1}
-                    className="p-2 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    aria-label="Move file down"
-                  >
-                    <ArrowDown size={18} className="text-gray-600" />
-                  </button>
-                  <button
-                    onClick={() => removeFile(file.id)}
-                    className="p-2 rounded-full hover:bg-red-100 transition-colors"
-                    aria-label="Remove file"
-                  >
-                    <XCircle size={18} className="text-red-500" />
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-6 text-center">
-            {toast && (
-              <div className={`p-3 mb-4 rounded-lg text-sm inline-block
-                ${toast.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {toast.message}
-              </div>
-            )}
-            <button
-              onClick={handleMergePdfs}
-              disabled={selectedFiles.length < 2 || isMerging}
-              className="inline-flex items-center justify-center rounded-lg shadow-md px-8 py-3 bg-[#471396] text-base font-medium text-white hover:bg-[#471396]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#471396]/50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isMerging ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Merging...
-                </>
-              ) : (
-                <>
-                  <Layers size={20} className="mr-2" /> {/* Using Layers icon for merge */}
-                  Merge PDFs
-                </>
-              )}
-            </button>
-          </div>
-        </section>
-      )}
-      
+      </motion.div>
 
       {/* Features List */}
-      <section className="mt-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Features of Smart PDF Merge</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex items-start space-x-3">
-            <CheckCircle size={24} className="text-green-500 mt-1 flex-shrink-0" />
+      <motion.section 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="mt-16 bg-card rounded-3xl shadow-xl p-8 sm:p-12 border border-border/50 max-w-5xl mx-auto glass-panel"
+      >
+        <h2 className="text-3xl font-extrabold text-foreground mb-8 text-center tracking-tight">Why sequence PDFs with us?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="flex items-start space-x-4">
+            <div className="p-3 bg-green-500/10 rounded-xl mt-1">
+              <CheckCircle size={24} className="text-green-500" />
+            </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-800">Merge multiple PDFs into a single file in seconds</h3>
-              <p className="text-gray-600 text-sm">Quickly combine documents without hassle.</p>
+              <h3 className="text-xl font-bold text-foreground mb-1">Flawless Integration</h3>
+              <p className="text-muted-foreground leading-relaxed">Combine invoices, reports, and manuals seamlessly. The text, fonts, and layouts stay perfectly intact.</p>
             </div>
           </div>
-          <div className="flex items-start space-x-3">
-            <CheckCircle size={24} className="text-green-500 mt-1 flex-shrink-0" />
+          <div className="flex items-start space-x-4">
+            <div className="p-3 bg-green-500/10 rounded-xl mt-1">
+              <CheckCircle size={24} className="text-green-500" />
+            </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-800">Works online on any device and operating system</h3>
-              <p className="text-gray-600 text-sm">Access our tool from anywhere, anytime.</p>
+              <h3 className="text-xl font-bold text-foreground mb-1">Visual Reordering</h3>
+              <p className="text-muted-foreground leading-relaxed">Intuitve drag-and-drop hierarchy lets you quickly establish the flow of pages before locking them in.</p>
             </div>
           </div>
-          <div className="flex items-start space-x-3">
-            <CheckCircle size={24} className="text-green-500 mt-1 flex-shrink-0" />
+          <div className="flex items-start space-x-4">
+            <div className="p-3 bg-green-500/10 rounded-xl mt-1">
+              <CheckCircle size={24} className="text-green-500" />
+            </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-800">Trusted by millions of users worldwide</h3>
-              <p className="text-gray-600 text-sm">Join a global community of satisfied users.</p>
+              <h3 className="text-xl font-bold text-foreground mb-1">Massive File Support</h3>
+              <p className="text-muted-foreground leading-relaxed">Join together hundreds of pages from several massive files. Our cloud rendering handles the heavy lifting.</p>
             </div>
           </div>
-          <div className="flex items-start space-x-3">
-            <CheckCircle size={24} className="text-green-500 mt-1 flex-shrink-0" />
+          <div className="flex items-start space-x-4">
+            <div className="p-3 bg-green-500/10 rounded-xl mt-1">
+              <CheckCircle size={24} className="text-green-500" />
+            </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-800">Secure and private processing</h3>
-              <p className="text-gray-600 text-sm">Your documents are safe with us, processed securely in the cloud.</p>
+              <h3 className="text-xl font-bold text-foreground mb-1">Instant Auto-Delete</h3>
+              <p className="text-muted-foreground leading-relaxed">Your files are temporary. After merging and downloading, we automatically purge all data from our active nodes.</p>
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

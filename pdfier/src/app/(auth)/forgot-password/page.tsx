@@ -143,7 +143,7 @@ export default function ForgotPassword() {
 
   const formVariants = {
     hidden: { opacity: 0, scale: 0.95 },
-    show: { opacity: 1, scale: 1, transition: { type: "spring", bounce: 0, duration: 0.4 } },
+    show: { opacity: 1, scale: 1, transition: { type: "spring" as const, bounce: 0, duration: 0.4 } },
     exit: { opacity: 0, scale: 1.05, transition: { duration: 0.2 } }
   };
 

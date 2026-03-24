@@ -83,7 +83,7 @@ const HelpPage = () => {
 
   const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    show: { y: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
   };
 
   return (
@@ -128,7 +128,7 @@ const HelpPage = () => {
             {topics.map((topic, index) => (
               <motion.div 
                 whileHover={{ y: -4 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                transition={{ type: "spring" as const, stiffness: 400, damping: 25 }}
                 key={index}
                 className="bg-card glass-panel rounded-2xl p-6 shadow-md border border-border/50 hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer group"
               >

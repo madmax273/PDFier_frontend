@@ -123,7 +123,7 @@ export default function ToolsPage() {
 
   const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0, scale: 0.95 },
-    show: { y: 0, opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    show: { y: 0, opacity: 1, scale: 1, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
   };
 
   return (

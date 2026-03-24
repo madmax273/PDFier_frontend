@@ -96,3 +96,33 @@
 .glass-panel {
   @apply bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-white/20 dark:border-slate-800/50 shadow-xl;
 }
+
+/* ─── Shimmer animation keyframe ─────────────────────────── */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ─── Reusable shimmer overlay – add to any button ───────── */
+/*  Works automatically on all <Button> via the group class.  */
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255,255,255,0.25) 50%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: none;
+}
+.btn-shimmer:hover::after {
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Ring offset colour token (required by shadcn focus rings) */
+:root {
+  --ring-offset-background: hsl(var(--background));
+}

@@ -29,7 +29,7 @@ export default function ToolPlaceholderPage() {
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 24 }}
+        transition={{ type: "spring" as const, stiffness: 300, damping: 24 }}
         className="max-w-4xl mx-auto"
       >
         <div className="bg-card border border-border/50 rounded-3xl p-12 text-center glass-panel shadow-2xl relative overflow-hidden">

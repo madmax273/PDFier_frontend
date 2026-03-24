@@ -1,6 +1,8 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft, Moon, Sun, BotMessageSquare } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export default function ChatAiLayout({
   children,
@@ -8,40 +10,62 @@ export default function ChatAiLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 text-foreground">
+    <div className="min-h-screen w-full bg-background text-foreground flex flex-col transition-colors duration-300">
+      {/* Dynamic Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/20 dark:bg-purple-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-[pulse_10s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/20 dark:bg-blue-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-[pulse_7s_ease-in-out_infinite]" />
+      </div>
+
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/20 bg-gradient-to-r from-[#471396] to-[#5e1bbf] backdrop-blur-md shadow-md">
-        <div className="w-full px-6 py-4 flex items-center">
-          <button 
-            onClick={() => router.back()}
-            className="mr-4 p-1.5 rounded-full hover:bg-white/10 transition-all duration-200"
-            aria-label="Go back"
-            title="Go back"
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6 text-white" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/60 backdrop-blur-xl shadow-sm transition-all duration-300">
+        <div className="w-full px-4 sm:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => router.back()}
+              className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 group"
+              aria-label="Go back"
+              title="Go back"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M10 19l-7-7m0 0l7-7m-7 7h18" 
-              />
-            </svg>
-          </button>
-          <div className="border-l border-white/30 h-6 mx-3"></div>
-          <h1 className="text-xl md:text-2xl font-bold text-white tracking-wide">
-            PDFier AI 🤖
-          </h1>
+              <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+            </button>
+            <div className="h-6 w-px bg-border/60"></div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-md">
+                <BotMessageSquare className="h-5 w-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 tracking-tight">
+                PDFier AI
+              </h1>
+            </div>
+          </div>
+          
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-300"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
+          )}
         </div>
       </header>
-      {children}
+      
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        {children}
+      </main>
     </div>
   );
 }

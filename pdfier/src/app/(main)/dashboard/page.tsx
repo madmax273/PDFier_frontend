@@ -136,11 +136,15 @@ export default function DashboardPage() {
             </div>
             <Link 
               href="/chat-ai" 
-              className="group relative inline-flex items-center gap-2 bg-white text-primary px-8 py-4 rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap overflow-hidden"
+              className="group relative inline-flex items-center gap-3 bg-white text-gray-900 px-8 py-4 rounded-full font-bold shadow-2xl hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] transition-all duration-300 hover:-translate-y-1 active:scale-95 whitespace-nowrap overflow-hidden border-2 border-white/50"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-              <MessageSquare className="w-5 h-5" />
-              <span>Chat with a PDF</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-300/30 to-transparent flex -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 shadow-inner">
+                <MessageSquare className="w-4 h-4 text-indigo-600" />
+              </div>
+              <span className="text-lg font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-gray-900 to-gray-700">
+                Chat with AI
+              </span>
             </Link>
           </div>
         </div>

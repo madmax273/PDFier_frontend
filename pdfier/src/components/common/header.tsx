@@ -74,8 +74,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               className="flex items-center gap-2 p-1 pl-3 pr-2 rounded-full border border-border/50 bg-card hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <div className="flex flex-col items-end hidden sm:flex">
-                <span className="text-sm font-semibold tracking-tight text-foreground leading-none">{user?.name || 'User'}</span>
-                <span className="text-[10px] uppercase font-bold text-primary mt-1 tracking-wider">{user?.plan_type || 'GUEST'} PLAN</span>
+                <span className="text-sm font-semibold tracking-tight text-purple-800 dark:text-purple-300 leading-none">{user?.name || 'User'}</span>
+                <span className="text-[10px] uppercase font-bold text-foreground mt-1 tracking-wider">{user?.plan_type || 'GUEST'} PLAN</span>
               </div>
               <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
                 <User size={16} />
@@ -88,11 +88,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                   className="fixed inset-0 z-40"
                   onClick={handleDropdownClose}
                 />
-                <div className="absolute right-0 mt-2 w-56 bg-card border border-border/50 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-2 w-56 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl py-2 z-50 rounded-xl">
                   <div className="px-4 py-3 border-b border-border/50 mb-2 sm:hidden">
-                    <p className="text-sm font-semibold text-foreground">{user?.name || 'User'}</p>
+                    <p className="text-sm font-semibold text-purple-800 dark:text-purple-300">{user?.name || 'User'}</p>
                     <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                    <div className="inline-block mt-2 px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full border border-primary/20 uppercase">
+                    <div className="inline-block mt-2 px-2 py-0.5 bg-primary/20 text-foreground text-[10px] font-bold rounded-full border border-primary/30 uppercase">
                       {user?.plan_type || 'GUEST'}
                     </div>
                   </div>
@@ -142,4 +142,4 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   );
 };
 
-export default Header;
+export default Header;

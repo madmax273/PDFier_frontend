@@ -96,7 +96,7 @@ export default function DashboardPage() {
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl mb-2">
-            Welcome back, <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-500">{userName}</span> 👋
+            Welcome back, <span className="text-foreground">{userName}</span> 👋
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
             Manage your documents, optimize your workflow, and chat with AI in seconds.

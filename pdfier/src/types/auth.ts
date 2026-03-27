@@ -13,6 +13,7 @@ export interface UsageMetrics {
   }
   
   export interface User {
+    id: string;
     name: string;
     email?: string;
     verified: boolean;

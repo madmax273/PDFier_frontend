@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { UsageMetrics,AuthUser,User,GuestUser, } from '@/types/auth';
 import Cookies from 'js-cookie';
+import { useDocumentStore } from './DocumentStore';
+import { useConversationStore } from './ConversationStore';
+import { useFileStore } from './FileStore';
 
 type AuthState = {
   isLoggedIn: boolean;
@@ -57,13 +60,13 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           });
 
           if (response.ok) {
-            const userData: User = await response.json();
+            const apiResponse = await response.json();
+            // Extract actual user data from the data field
+            const userData: User = apiResponse.data || apiResponse;
             set({ user: userData, isLoggedIn: true });
           } 
           else if (response.status === 401) {
-            console.log("Access token is invalid or has expired. fetching new access token.");
             const refreshToken = Cookies.get('refreshToken');
-            console.log("Refresh token from cookies {"+refreshToken+"}");
             if (refreshToken) {
 
               const refreshResponse = await fetch(`${BACKEND_URL}/api/v1/auth/refresh`, {
@@ -76,7 +79,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
               });
 
               if (refreshResponse.ok) {
-                console.log("Refresh token is valid. fetching new access token.");
                 const data = await refreshResponse.json();
                 Cookies.set('accessToken', data.access_token, {
                   expires: 420,
@@ -88,25 +90,20 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                   window.location.reload();
                 }
               } else {
-                console.warn("Refresh token is invalid or has expired. Setting user as guest.");
                 set({ user: defaultGuestUser, isLoggedIn: false });
                 get().logout();
                 if (typeof window !== 'undefined') window.location.href = '/login';
               }
-            } 
-            else {
-              console.warn("No active session found or token expired. Setting user as guest.");
+            } else {
               set({ user: defaultGuestUser, isLoggedIn: false });
               get().logout();
             }
           } else {
-            console.error("Error during initial auth check:", response);
             set({ user: defaultGuestUser, isLoggedIn: false });
             get().logout();
           }
         }
         catch (error) {
-          console.error("Error during initial auth check:", error);
           set({ user: defaultGuestUser, isLoggedIn: false });
           get().logout();
         }
@@ -127,8 +124,24 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           path: '/',
         });
         
+        // Clear previous user data and set new user
+        const documentStore = useDocumentStore.getState();
+        const conversationStore = useConversationStore.getState();
+        const fileStore = useFileStore.getState();
         
-        
+        // Check if user changed
+        if (documentStore.userId !== userData.id) {
+          documentStore.clearDocuments();
+          documentStore.setUserId(userData.id);
+        }
+        if (conversationStore.userId !== userData.id) {
+          conversationStore.clearConversations();
+          conversationStore.setUserId(userData.id);
+        }
+        if (fileStore.userId !== userData.id) {
+          fileStore.clearFiles();
+          fileStore.setUserId(userData.id);
+        }
         
         set({ user: userData, isLoggedIn: true, refreshToken,accessToken });
 
@@ -137,6 +150,19 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       logout: async () => {
         Cookies.remove('refreshToken', { path: '/' });
         Cookies.remove('accessToken', { path: '/' });
+        
+        // Clear all user data from stores
+        const documentStore = useDocumentStore.getState();
+        const conversationStore = useConversationStore.getState();
+        const fileStore = useFileStore.getState();
+        
+        documentStore.clearDocuments();
+        documentStore.setUserId(null);
+        conversationStore.clearConversations();
+        conversationStore.setUserId(null);
+        fileStore.clearFiles();
+        fileStore.setUserId(null);
+        
         set({ user: defaultGuestUser, isLoggedIn: false, refreshToken: null,accessToken:null });
       },
 

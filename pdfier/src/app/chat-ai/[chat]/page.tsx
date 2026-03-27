@@ -41,23 +41,47 @@ export default function Home() {
     setConversations,
     setSelectedConversation,
     selectedConversation,
+    clearConversations,
   } = useConversationStore();
   const {
     documents,
     selectedDocument,
     setDocuments,
     setSelectedDocument,
+    clearDocuments,
   } = useDocumentStore();
+
+  // Clear all data when collectionId changes to prevent showing stale data
+  useEffect(() => {
+    console.log('Collection changed to:', collectionId, 'clearing all data');
+    clearConversations();
+    clearDocuments();
+    setMessages([]);
+    setSelectedConversation(null);
+    setSelectedDocument(null);
+    setError(null);
+    setDocError(null);
+    setMessagesError(null);
+  }, [collectionId, clearConversations, clearDocuments, setSelectedConversation, setSelectedDocument]);
 
   useEffect(() => {
     let cancelled = false;
     async function run() {
-      if (activeTab !== "conversations" || !collectionId) return;
+      if (!collectionId) return;
       try {
         setLoading(true);
         setError(null);
+        console.log('Loading conversations for collection:', collectionId);
         const data = await fetchConversations(collectionId as string);
-        if (!cancelled) setConversations(data);
+        if (!cancelled) {
+          console.log('Loaded conversations:', data);
+          setConversations(data);
+          // Auto-select first conversation if available and none selected
+          if (data.length > 0 && !selectedConversation) {
+            console.log('Auto-selecting first conversation:', data[0]);
+            setSelectedConversation(data[0]);
+          }
+        }
       } catch (e: any) {
         if (!cancelled) setError(e?.message ?? "Failed to load conversations");
       } finally {
@@ -68,13 +92,15 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [activeTab, collectionId, setConversations]);
+  }, [collectionId, setConversations, setSelectedConversation]);
 
-  // Fetch documents when Documents tab is active; default-select first
+  // Fetch documents when Documents tab is active or when collection changes; default-select first
   useEffect(() => {
     let cancelled = false;
     async function run() {
-      if (activeTab !== "documents") return;
+      // Only load documents if we're on documents tab OR if collection just changed (to auto-select first doc)
+      if (activeTab !== "documents" && !collectionId) return;
+      
       const effectiveCollectionId =
         selectedConversation?.collection_id ||
         (conversations && conversations.length > 0 ? conversations[0].collection_id : undefined) ||
@@ -83,15 +109,17 @@ export default function Home() {
       try {
         setDocLoading(true);
         setDocError(null);
+        console.log('Loading documents for collection:', effectiveCollectionId);
         const docs = await fetchDocuments(effectiveCollectionId);
         if (!cancelled) {
+          console.log('Loaded documents:', docs);
           setDocuments(docs);
           if (docs.length > 0) {
-            // If no selected doc or selected no longer in list, default to first
-            if (!selectedDocument || !docs.find((d) => d.id === selectedDocument.id)) {
-              setSelectedDocument(docs[0]);
-            }
+            // Always select the first document when collection changes or no doc selected
+            console.log('Auto-selecting first document:', docs[0]);
+            setSelectedDocument(docs[0]);
           } else {
+            console.log('No documents found, clearing selection');
             setSelectedDocument(null);
           }
         }
@@ -105,7 +133,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [activeTab, collectionId, selectedConversation, conversations, setDocuments, setSelectedDocument, selectedDocument]);
+  }, [activeTab, collectionId, selectedConversation, conversations, setDocuments, setSelectedDocument]);
 
   // Load messages when a conversation is selected
   useEffect(() => {

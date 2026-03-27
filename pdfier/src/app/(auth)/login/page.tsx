@@ -166,7 +166,8 @@ export default function Login() {
             type="button"
             variant="outline"
             onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google/login`;
+              const redirectUri = window.location.origin + '/google/callback';
+              window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
             }}
             className="w-full py-6 rounded-xl border-border/50 hover:bg-secondary/80 focus:ring-2 focus:ring-primary transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
             disabled={isLoading}

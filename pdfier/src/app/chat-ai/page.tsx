@@ -16,6 +16,10 @@ type Collection = {
 export default function ChatAiCollectionsPage() {
   const router = useRouter();
   const { user, isLoggedIn } = useAuthStore();
+  
+  // Debug user state
+  console.log('Current user state:', { user, isLoggedIn, userId: user?.id });
+  
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -28,6 +32,9 @@ export default function ChatAiCollectionsPage() {
   useEffect(() => {
     if (user?.plan_type === 'guest') {
       setShowLoginDialog(true);
+      setCollections([]); // Clear collections for guest users
+    } else if (user) {
+      setShowLoginDialog(false); // Hide login dialog for authenticated users
     }
   }, [user]);
 
@@ -35,21 +42,42 @@ export default function ChatAiCollectionsPage() {
     router.push('/login');
   };
 
+  // Clear collections when user changes to prevent showing wrong data
+  useEffect(() => {
+    setCollections([]);
+    setLoading(true);
+  }, [user?.id]);
+
   useEffect(() => {
     let cancelled = false;
     async function loadCollections() {
+      // Only fetch if we have a valid user and they're not a guest
+      if (!user || user.plan_type === 'guest') {
+        console.log('Skipping collections fetch - no valid user or guest user');
+        setLoading(false);
+        return;
+      }
+      
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/collections/`, {
+        console.log('Loading collections for user:', user?.id);
+        console.log('Access token exists:', !!Cookies.get("accessToken"));
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/collections/?user_id=${user?.id}&_t=${Date.now()}`, {
           method: "GET",
           headers: { Authorization: `Bearer ${Cookies.get("accessToken")}` },
         });
         if (!response.ok) throw new Error(`Failed to fetch collections: ${response.status}`);
         const raw = await response.json();
+        console.log('Raw API response:', raw);
+        
         const list: Collection[] =
           Array.isArray(raw) ? raw : Array.isArray(raw?.results) ? raw.results : Array.isArray(raw?.data) ? raw.data : [];
+        console.log('Processed collections list:', list);
+        
         if (!cancelled) setCollections(list);
       } catch (e: any) {
+        console.error('Error loading collections:', e);
         setToast({ message: e?.message ?? "Failed to load collections", type: "error" });
       } finally {
         if (!cancelled) setLoading(false);
@@ -59,7 +87,7 @@ export default function ChatAiCollectionsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +98,7 @@ export default function ChatAiCollectionsPage() {
           Authorization: `Bearer ${Cookies.get("accessToken")}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, description }),
+        body: JSON.stringify({ name, description, user_id: user?.id }),
       });
       if (!res.ok) throw new Error(`Failed to create collection: ${res.status}`);
       const created: Collection = await res.json();

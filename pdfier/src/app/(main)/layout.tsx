@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import Sidebar from '@/components/common/sidebar'; // Using @/ alias
 import Header from '@/components/common/header';   // Using @/ alias
 import Footer from '@/components/common/footer';   // Using @/ alias
+import ClientAuthInitializer from '@/components/auth/clientAuthInitializer'; // Using @/ alias
 import { useAuthStore } from '@/store/AuthStore';
 
 export default function AppLayout({
@@ -21,7 +22,9 @@ export default function AppLayout({
   };
 
   return (
-    isInitializing ? (
+    <>
+      <ClientAuthInitializer />
+      {isInitializing ? (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
       </div>
@@ -62,6 +65,7 @@ export default function AppLayout({
           </div>
         </div>
       </div>
-    )
+      )}
+    </>
   );
 }

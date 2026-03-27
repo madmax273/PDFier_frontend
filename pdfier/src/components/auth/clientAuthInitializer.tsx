@@ -7,9 +7,9 @@ import { useAuthStore } from '@/store/AuthStore';
 const ClientAuthInitializer = () => {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
-useEffect(() => {
-  initializeAuth();
-}, [initializeAuth]);
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   return null; // no UI, just initializes auth
 };

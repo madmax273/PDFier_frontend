@@ -75,3 +75,4 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ![Chat](./assets/AI.png)
 ![Tools](./assets/Tools.png)
 ![Merge](./assets/Merge.png)
+![Vault](./assets/Vault.png)
